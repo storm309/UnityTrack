@@ -45,3 +45,7 @@ yarn-error.log*
 Thumbs.db
 .vscode/
 .idea/
+.github/
+inspect_bundles.py
+app/inspect_bundles.py
+

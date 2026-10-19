@@ -91,8 +91,12 @@ def main() -> None:
     """CLI entry point for python -m app.seed."""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     parser = argparse.ArgumentParser(description="Seed UnityTrack database with synthetic data")
-    parser.add_argument("--seed", type=int, default=42, help="Random seed for determinism (default: 42)")
-    parser.add_argument("--no-reset", action="store_true", help="Do not clear existing data before seeding")
+    parser.add_argument(
+        "--seed", type=int, default=42, help="Random seed for determinism (default: 42)"
+    )
+    parser.add_argument(
+        "--no-reset", action="store_true", help="Do not clear existing data before seeding"
+    )
     args = parser.parse_args()
 
     # Ensure tables exist

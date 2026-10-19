@@ -16,7 +16,11 @@ def list_corridors(db: Session = Depends(get_db)) -> List[Corridor]:
     return db.query(Corridor).all()
 
 
-@router.get("/{corridor_id}", response_model=CorridorDetailResponse, summary="Get corridor with ordered sections")
+@router.get(
+    "/{corridor_id}",
+    response_model=CorridorDetailResponse,
+    summary="Get corridor with ordered sections",
+)
 def get_corridor(corridor_id: str, db: Session = Depends(get_db)) -> Corridor:
     """Retrieve specific corridor with all ordered child sections."""
     corridor = db.query(Corridor).filter(Corridor.id == corridor_id).first()

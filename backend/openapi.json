@@ -678,6 +678,344 @@
         }
       }
     },
+    "/api/priority": {
+      "get": {
+        "tags": [
+          "priority"
+        ],
+        "summary": "Get ranked tasks with explainable priority scores",
+        "description": "Compute explainable multi-factor priority scores for maintenance tasks.\n\nFormula:\n  score = 100 * (0.35*criticality_norm + 0.30*severity_norm + 0.20*overdue_ratio + 0.15*traffic_impact)\nAll factors normalized to [0, 1]. Total score strictly in [0, 100].",
+        "operationId": "get_priority_ranking_api_priority_get",
+        "parameters": [
+          {
+            "name": "weight_criticality",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "description": "Weight for criticality",
+              "default": 0.35,
+              "title": "Weight Criticality"
+            },
+            "description": "Weight for criticality"
+          },
+          {
+            "name": "weight_severity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "description": "Weight for defect severity",
+              "default": 0.3,
+              "title": "Weight Severity"
+            },
+            "description": "Weight for defect severity"
+          },
+          {
+            "name": "weight_overdue",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "description": "Weight for overdue ratio",
+              "default": 0.2,
+              "title": "Weight Overdue"
+            },
+            "description": "Weight for overdue ratio"
+          },
+          {
+            "name": "weight_traffic",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "description": "Weight for traffic impact",
+              "default": 0.15,
+              "title": "Weight Traffic"
+            },
+            "description": "Weight for traffic impact"
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by department",
+              "title": "Department"
+            },
+            "description": "Filter by department"
+          },
+          {
+            "name": "section_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by section ID",
+              "title": "Section Id"
+            },
+            "description": "Filter by section ID"
+          },
+          {
+            "name": "priority_band",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by priority band: CRITICAL | HIGH | MEDIUM | LOW",
+              "title": "Priority Band"
+            },
+            "description": "Filter by priority band: CRITICAL | HIGH | MEDIUM | LOW"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriorityListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bundles/candidates": {
+      "get": {
+        "tags": [
+          "bundles"
+        ],
+        "summary": "Get candidate task bundles that can share a maintenance block",
+        "description": "Discover and return all candidate task bundles respecting compatibility rules.\n\nRules applied:\n- Geographic: Same corridor; same section (or adjacent if enabled).\n- Temporal: Overlapping feasible windows wide enough for bundle duration.\n- Department & Safety Matrix: TRD+SNT parallel, ENG+SNT parallel/sequential, ENG+TRD power-off safe.\n- Resource capacity: Combined departmental crew does not exceed window limits.",
+        "operationId": "get_candidate_bundles_api_bundles_candidates_get",
+        "parameters": [
+          {
+            "name": "corridor_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter bundles by corridor ID",
+              "title": "Corridor Id"
+            },
+            "description": "Filter bundles by corridor ID"
+          },
+          {
+            "name": "section_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter bundles by section ID",
+              "title": "Section Id"
+            },
+            "description": "Filter bundles by section ID"
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter bundles containing this department",
+              "title": "Department"
+            },
+            "description": "Filter bundles containing this department"
+          },
+          {
+            "name": "cross_department_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Return only cross-departmental bundles",
+              "default": false,
+              "title": "Cross Department Only"
+            },
+            "description": "Return only cross-departmental bundles"
+          },
+          {
+            "name": "max_bundle_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 4,
+              "minimum": 2,
+              "description": "Maximum number of tasks per bundle",
+              "default": 3,
+              "title": "Max Bundle Size"
+            },
+            "description": "Maximum number of tasks per bundle"
+          },
+          {
+            "name": "allow_adjacent_sections",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Allow bundling across adjacent physical sections",
+              "default": false,
+              "title": "Allow Adjacent Sections"
+            },
+            "description": "Allow bundling across adjacent physical sections"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateBundlesListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bundles/check": {
+      "get": {
+        "tags": [
+          "bundles"
+        ],
+        "summary": "Check pairwise compatibility between two specific tasks",
+        "description": "Evaluate pairwise compatibility between two tasks with exact explainability.",
+        "operationId": "check_tasks_compatibility_api_bundles_check_get",
+        "parameters": [
+          {
+            "name": "task_a_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "First task ID",
+              "title": "Task A Id"
+            },
+            "description": "First task ID"
+          },
+          {
+            "name": "task_b_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Second task ID",
+              "title": "Task B Id"
+            },
+            "description": "Second task ID"
+          },
+          {
+            "name": "allow_adjacent_sections",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Allow bundling across adjacent physical sections",
+              "default": false,
+              "title": "Allow Adjacent Sections"
+            },
+            "description": "Allow bundling across adjacent physical sections"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairwiseCompatibilityResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/seed": {
       "post": {
         "tags": [
@@ -770,6 +1108,180 @@
         ],
         "title": "BlockWindowResponse"
       },
+      "BundleCandidateSchema": {
+        "properties": {
+          "bundle_id": {
+            "type": "string",
+            "title": "Bundle Id",
+            "description": "Deterministic bundle identifier"
+          },
+          "task_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Task Ids",
+            "description": "List of task IDs bundled together"
+          },
+          "section_id": {
+            "type": "string",
+            "title": "Section Id",
+            "description": "Physical track section ID"
+          },
+          "corridor_id": {
+            "type": "string",
+            "title": "Corridor Id",
+            "description": "Corridor ID"
+          },
+          "departments": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Departments",
+            "description": "List of departments involved"
+          },
+          "is_cross_departmental": {
+            "type": "boolean",
+            "title": "Is Cross Departmental",
+            "description": "True if bundling across multiple departments"
+          },
+          "execution_mode": {
+            "type": "string",
+            "title": "Execution Mode",
+            "description": "Execution mode: PARALLEL | SEQUENTIAL | HYBRID"
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min",
+            "description": "Total required block duration in minutes"
+          },
+          "disruption_savings_min": {
+            "type": "integer",
+            "title": "Disruption Savings Min",
+            "description": "Minutes saved compared to separate unbundled blocks"
+          },
+          "efficiency_gain_pct": {
+            "type": "number",
+            "title": "Efficiency Gain Pct",
+            "description": "Percentage reduction in corridor disruption time"
+          },
+          "earliest_start": {
+            "type": "integer",
+            "title": "Earliest Start",
+            "description": "Feasible bundle earliest start (minute offset)"
+          },
+          "deadline": {
+            "type": "integer",
+            "title": "Deadline",
+            "description": "Feasible bundle deadline (minute offset)"
+          },
+          "feasibility_window_min": {
+            "type": "integer",
+            "title": "Feasibility Window Min",
+            "description": "Available window length (deadline - earliest_start)"
+          },
+          "requires_power_off": {
+            "type": "boolean",
+            "title": "Requires Power Off",
+            "description": "True if OHE 25kV de-energization power block is required"
+          },
+          "requires_track_block": {
+            "type": "boolean",
+            "title": "Requires Track Block",
+            "description": "True if track possession block is required"
+          },
+          "crew_needed_by_dept": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Crew Needed By Dept",
+            "description": "Concurrent crew required broken down by department"
+          },
+          "combined_priority_score": {
+            "type": "number",
+            "title": "Combined Priority Score",
+            "description": "Aggregate priority score for all tasks in bundle"
+          },
+          "compatibility_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Compatibility Reasons",
+            "description": "Explainable reasons why tasks are compatible"
+          },
+          "tasks_summary": {
+            "items": {
+              "$ref": "#/components/schemas/TaskSummarySchema"
+            },
+            "type": "array",
+            "title": "Tasks Summary",
+            "description": "Task details in this bundle"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bundle_id",
+          "task_ids",
+          "section_id",
+          "corridor_id",
+          "departments",
+          "is_cross_departmental",
+          "execution_mode",
+          "duration_min",
+          "disruption_savings_min",
+          "efficiency_gain_pct",
+          "earliest_start",
+          "deadline",
+          "feasibility_window_min",
+          "requires_power_off",
+          "requires_track_block",
+          "crew_needed_by_dept",
+          "combined_priority_score",
+          "compatibility_reasons",
+          "tasks_summary"
+        ],
+        "title": "BundleCandidateSchema",
+        "description": "Candidate bundle of mutually compatible tasks sharing a maintenance block."
+      },
+      "CandidateBundlesListResponse": {
+        "properties": {
+          "total_candidates": {
+            "type": "integer",
+            "title": "Total Candidates",
+            "description": "Total candidate bundles discovered"
+          },
+          "cross_departmental_count": {
+            "type": "integer",
+            "title": "Cross Departmental Count",
+            "description": "Number of multi-department bundles"
+          },
+          "total_potential_savings_min": {
+            "type": "integer",
+            "title": "Total Potential Savings Min",
+            "description": "Total corridor disruption minutes saved if all best bundles executed"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/BundleCandidateSchema"
+            },
+            "type": "array",
+            "title": "Candidates",
+            "description": "List of candidate bundles sorted by disruption savings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_candidates",
+          "cross_departmental_count",
+          "total_potential_savings_min",
+          "candidates"
+        ],
+        "title": "CandidateBundlesListResponse",
+        "description": "Response containing all discovered candidate bundles matching query filters."
+      },
       "CorridorDetailResponse": {
         "properties": {
           "id": {
@@ -818,6 +1330,39 @@
         ],
         "title": "CorridorResponse"
       },
+      "FactorContributionsSchema": {
+        "properties": {
+          "criticality": {
+            "type": "number",
+            "title": "Criticality",
+            "description": "Criticality point contribution"
+          },
+          "defect_severity": {
+            "type": "number",
+            "title": "Defect Severity",
+            "description": "Defect severity point contribution"
+          },
+          "overdue_ratio": {
+            "type": "number",
+            "title": "Overdue Ratio",
+            "description": "Overdue ratio point contribution"
+          },
+          "traffic_impact": {
+            "type": "number",
+            "title": "Traffic Impact",
+            "description": "Traffic impact point contribution"
+          }
+        },
+        "type": "object",
+        "required": [
+          "criticality",
+          "defect_severity",
+          "overdue_ratio",
+          "traffic_impact"
+        ],
+        "title": "FactorContributionsSchema",
+        "description": "Points contribution of each factor to the total 0-100 score."
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -863,6 +1408,234 @@
         ],
         "title": "HealthResponse",
         "description": "Health check response schema."
+      },
+      "PairwiseCompatibilityResponse": {
+        "properties": {
+          "task_a_id": {
+            "type": "string",
+            "title": "Task A Id"
+          },
+          "task_b_id": {
+            "type": "string",
+            "title": "Task B Id"
+          },
+          "is_compatible": {
+            "type": "boolean",
+            "title": "Is Compatible"
+          },
+          "conflict_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conflict Code"
+          },
+          "conflict_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conflict Reason"
+          },
+          "execution_mode": {
+            "type": "string",
+            "title": "Execution Mode"
+          },
+          "combined_duration_min": {
+            "type": "integer",
+            "title": "Combined Duration Min"
+          },
+          "disruption_savings_min": {
+            "type": "integer",
+            "title": "Disruption Savings Min"
+          },
+          "requires_power_off": {
+            "type": "boolean",
+            "title": "Requires Power Off"
+          },
+          "requires_track_block": {
+            "type": "boolean",
+            "title": "Requires Track Block"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_a_id",
+          "task_b_id",
+          "is_compatible",
+          "execution_mode",
+          "combined_duration_min",
+          "disruption_savings_min",
+          "requires_power_off",
+          "requires_track_block",
+          "reasons"
+        ],
+        "title": "PairwiseCompatibilityResponse",
+        "description": "Detailed response for pairwise task compatibility evaluation."
+      },
+      "PriorityItemResponse": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id",
+            "description": "Unique task identifier"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Task title"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department",
+            "description": "Department: ENGINEERING | TRACTION | SNT"
+          },
+          "section_id": {
+            "type": "string",
+            "title": "Section Id",
+            "description": "Track section ID"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score",
+            "description": "Computed priority score (0.0 to 100.0)"
+          },
+          "rank": {
+            "type": "integer",
+            "title": "Rank",
+            "description": "Rank position (1 = highest priority)"
+          },
+          "priority_band": {
+            "type": "string",
+            "title": "Priority Band",
+            "description": "Priority classification band: CRITICAL | HIGH | MEDIUM | LOW"
+          },
+          "contributions": {
+            "$ref": "#/components/schemas/FactorContributionsSchema",
+            "description": "Detailed point breakdown by factor"
+          },
+          "factors_normalized": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Factors Normalized",
+            "description": "Normalized factor values (0.0 to 1.0)"
+          },
+          "raw_factors": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Raw Factors",
+            "description": "Raw input factors before normalization"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id",
+          "title",
+          "department",
+          "section_id",
+          "score",
+          "rank",
+          "priority_band",
+          "contributions",
+          "factors_normalized",
+          "raw_factors"
+        ],
+        "title": "PriorityItemResponse",
+        "description": "Ranked maintenance task with explainable score breakdown and priority band."
+      },
+      "PriorityListResponse": {
+        "properties": {
+          "total_tasks": {
+            "type": "integer",
+            "title": "Total Tasks",
+            "description": "Total number of tasks scored"
+          },
+          "weights_used": {
+            "$ref": "#/components/schemas/PriorityWeightsInput",
+            "description": "Weights applied for scoring"
+          },
+          "band_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Band Counts",
+            "description": "Distribution count of tasks across priority bands"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/PriorityItemResponse"
+            },
+            "type": "array",
+            "title": "Tasks",
+            "description": "Ranked list of tasks in descending priority order"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_tasks",
+          "weights_used",
+          "band_counts",
+          "tasks"
+        ],
+        "title": "PriorityListResponse",
+        "description": "Response containing ranked tasks, summary band counts, and weights used."
+      },
+      "PriorityWeightsInput": {
+        "properties": {
+          "criticality": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Criticality",
+            "description": "Weight for asset criticality",
+            "default": 0.35
+          },
+          "defect_severity": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Defect Severity",
+            "description": "Weight for defect severity",
+            "default": 0.3
+          },
+          "overdue_ratio": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Overdue Ratio",
+            "description": "Weight for maintenance overdue ratio",
+            "default": 0.2
+          },
+          "traffic_impact": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Traffic Impact",
+            "description": "Weight for traffic impact factor",
+            "default": 0.15
+          }
+        },
+        "type": "object",
+        "title": "PriorityWeightsInput",
+        "description": "Configurable weights for the multi-factor priority score calculation."
       },
       "ResourceResponse": {
         "properties": {
@@ -1267,6 +2040,45 @@
           "id"
         ],
         "title": "TaskResponse"
+      },
+      "TaskSummarySchema": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department"
+          },
+          "asset_type": {
+            "type": "string",
+            "title": "Asset Type"
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min"
+          },
+          "priority_score": {
+            "type": "number",
+            "title": "Priority Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "department",
+          "asset_type",
+          "duration_min",
+          "priority_score"
+        ],
+        "title": "TaskSummarySchema",
+        "description": "Brief task preview within a bundle candidate."
       },
       "TaskUpdate": {
         "properties": {

@@ -18,7 +18,9 @@ VALID_STATUSES = {"PENDING", "SCHEDULED", "COMPLETED", "CANCELLED"}
 def list_tasks(
     department: Optional[str] = Query(default=None, description="Filter by department"),
     section_id: Optional[str] = Query(default=None, description="Filter by section ID"),
-    status_filter: Optional[str] = Query(default=None, alias="status", description="Filter by status"),
+    status_filter: Optional[str] = Query(
+        default=None, alias="status", description="Filter by status"
+    ),
     db: Session = Depends(get_db),
 ) -> List[Task]:
     """List maintenance tasks with optional department, section, and status filters."""
@@ -44,7 +46,12 @@ def get_task(task_id: str, db: Session = Depends(get_db)) -> Task:
     return task
 
 
-@router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED, summary="Create maintenance task")
+@router.post(
+    "",
+    response_model=TaskResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create maintenance task",
+)
 def create_task(task_in: TaskCreate, db: Session = Depends(get_db)) -> Task:
     """Create a new maintenance task with constraint validation."""
     # Validate department
@@ -155,7 +162,9 @@ def update_task(task_id: str, task_in: TaskUpdate, db: Session = Depends(get_db)
     return task
 
 
-@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete maintenance task")
+@router.delete(
+    "/{task_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete maintenance task"
+)
 def delete_task(task_id: str, db: Session = Depends(get_db)) -> None:
     """Delete a maintenance task."""
     task = db.query(Task).filter(Task.id == task_id).first()

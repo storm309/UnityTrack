@@ -5,8 +5,10 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.bundles import router as bundles_router
 from app.api.corridors import router as corridors_router
 from app.api.health import router as health_router
+from app.api.priority import router as priority_router
 from app.api.resources import router as resources_router
 from app.api.sections import router as sections_router
 from app.api.seed import router as seed_router
@@ -59,6 +61,8 @@ def create_app() -> FastAPI:
     app.include_router(trains_router)
     app.include_router(windows_router)
     app.include_router(resources_router)
+    app.include_router(priority_router)
+    app.include_router(bundles_router)
     app.include_router(seed_router)
 
     return app

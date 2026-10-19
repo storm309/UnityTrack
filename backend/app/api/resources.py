@@ -10,7 +10,9 @@ from app.schemas.domain import ResourceResponse
 router = APIRouter(prefix="/api/resources", tags=["resources"])
 
 
-@router.get("", response_model=List[ResourceResponse], summary="List departmental maintenance resources")
+@router.get(
+    "", response_model=List[ResourceResponse], summary="List departmental maintenance resources"
+)
 def list_resources(
     department: Optional[str] = Query(default=None, description="Filter by department"),
     db: Session = Depends(get_db),

@@ -12,6 +12,12 @@ from app.schemas.domain import (
     TrainSlotResponse,
 )
 from app.schemas.health import HealthResponse
+from app.schemas.priority import (
+    FactorContributionsSchema,
+    PriorityItemResponse,
+    PriorityListResponse,
+    PriorityWeightsInput,
+)
 
 __all__ = [
     "HealthResponse",
@@ -26,4 +32,8 @@ __all__ = [
     "ResourceResponse",
     "SeedRequest",
     "SeedResponse",
+    "PriorityWeightsInput",
+    "FactorContributionsSchema",
+    "PriorityItemResponse",
+    "PriorityListResponse",
 ]

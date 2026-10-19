@@ -29,9 +29,9 @@ def test_task_constraint_sanity() -> None:
 
     for t in tasks:
         # Feasibility: deadline must be >= earliest_start + duration
-        assert (
-            t["deadline"] >= t["earliest_start"] + t["duration_min"]
-        ), f"Task {t['id']} has infeasible deadline {t['deadline']} < {t['earliest_start']} + {t['duration_min']}"
+        assert t["deadline"] >= t["earliest_start"] + t["duration_min"], (
+            f"Task {t['id']} has infeasible deadline {t['deadline']} < {t['earliest_start']} + {t['duration_min']}"
+        )
 
         # Value bounds
         assert 1 <= t["criticality"] <= 5

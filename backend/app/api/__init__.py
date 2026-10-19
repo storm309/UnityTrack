@@ -1,5 +1,6 @@
 from app.api.corridors import router as corridors_router
 from app.api.health import router as health_router
+from app.api.priority import router as priority_router
 from app.api.resources import router as resources_router
 from app.api.sections import router as sections_router
 from app.api.seed import router as seed_router
@@ -16,4 +17,5 @@ __all__ = [
     "windows_router",
     "resources_router",
     "seed_router",
+    "priority_router",
 ]

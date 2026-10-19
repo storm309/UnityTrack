@@ -42,21 +42,33 @@ class TaskBase(BaseModel):
     title: str = Field(description="Task title/description")
     asset_type: str = Field(description="Asset type (Rails, OHE, Turnout, etc.)")
     duration_min: int = Field(gt=0, description="Duration in minutes")
-    earliest_start: int = Field(ge=0, description="Earliest feasible start minute from horizon start")
+    earliest_start: int = Field(
+        ge=0, description="Earliest feasible start minute from horizon start"
+    )
     deadline: int = Field(gt=0, description="Hard deadline minute from horizon start")
     criticality: int = Field(ge=1, le=5, description="Asset criticality (1 to 5)")
     defect_severity: int = Field(ge=1, le=5, description="Defect severity (1 to 5)")
     last_done_date: str = Field(description="ISO date string of last maintenance")
     due_date: str = Field(description="ISO date string when maintenance is due")
-    traffic_impact: float = Field(ge=0.0, le=1.0, description="Normalized traffic impact factor (0.0 to 1.0)")
+    traffic_impact: float = Field(
+        ge=0.0, le=1.0, description="Normalized traffic impact factor (0.0 to 1.0)"
+    )
     crew_needed: int = Field(gt=0, description="Number of crews required")
-    requires_power_off: bool = Field(default=False, description="Whether OHE power must be turned off")
-    requires_track_block: bool = Field(default=True, description="Whether track line block is required")
-    status: str = Field(default="PENDING", description="Task status (PENDING, SCHEDULED, COMPLETED, CANCELLED)")
+    requires_power_off: bool = Field(
+        default=False, description="Whether OHE power must be turned off"
+    )
+    requires_track_block: bool = Field(
+        default=True, description="Whether track line block is required"
+    )
+    status: str = Field(
+        default="PENDING", description="Task status (PENDING, SCHEDULED, COMPLETED, CANCELLED)"
+    )
 
 
 class TaskCreate(TaskBase):
-    id: Optional[str] = Field(default=None, description="Optional custom ID; auto-generated if omitted")
+    id: Optional[str] = Field(
+        default=None, description="Optional custom ID; auto-generated if omitted"
+    )
 
 
 class TaskUpdate(BaseModel):

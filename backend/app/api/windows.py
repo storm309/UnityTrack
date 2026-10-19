@@ -10,10 +10,14 @@ from app.schemas.domain import BlockWindowResponse
 router = APIRouter(prefix="/api/windows", tags=["windows"])
 
 
-@router.get("", response_model=List[BlockWindowResponse], summary="List allowable maintenance block windows")
+@router.get(
+    "", response_model=List[BlockWindowResponse], summary="List allowable maintenance block windows"
+)
 def list_windows(
     section_id: Optional[str] = Query(default=None, description="Filter by section ID"),
-    is_night_window: Optional[bool] = Query(default=None, description="Filter by night window flag"),
+    is_night_window: Optional[bool] = Query(
+        default=None, description="Filter by night window flag"
+    ),
     db: Session = Depends(get_db),
 ) -> List[BlockWindow]:
     """Retrieve permissible maintenance windows derived from timetable gaps."""

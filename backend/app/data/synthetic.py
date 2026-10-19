@@ -94,15 +94,15 @@ class SyntheticDataSource(DataSource):
         # Night lull: 00:30 (min 30) to 04:30 (min 270) -> NO passenger or freight departures.
         # Midday lull: 11:30 (min 690) to 13:30 (min 810) -> NO departures.
         train_definitions = [
-            ("12004-Shatabdi", 360, 25, 1),       # 06:00
-            ("22436-VandeBharat", 480, 20, 1),    # 08:00
-            ("04152-KanpurExp", 580, 35, 3),      # 09:40
-            ("12398-Mahabodhi", 830, 25, 2),      # 13:50
-            ("12424-Rajdhani", 980, 22, 1),       # 16:20
-            ("12566-BiharSK", 1120, 28, 2),       # 18:40
-            ("12802-Purushottam", 1260, 26, 2),   # 21:00
-            ("BOXN-88-Freight", 280, 35, 4),      # 04:40 (Freight right after night window)
-            ("BCN-52-Freight", 1380, 35, 4),      # 23:00 (Freight right before night window)
+            ("12004-Shatabdi", 360, 25, 1),  # 06:00
+            ("22436-VandeBharat", 480, 20, 1),  # 08:00
+            ("04152-KanpurExp", 580, 35, 3),  # 09:40
+            ("12398-Mahabodhi", 830, 25, 2),  # 13:50
+            ("12424-Rajdhani", 980, 22, 1),  # 16:20
+            ("12566-BiharSK", 1120, 28, 2),  # 18:40
+            ("12802-Purushottam", 1260, 26, 2),  # 21:00
+            ("BOXN-88-Freight", 280, 35, 4),  # 04:40 (Freight right after night window)
+            ("BCN-52-Freight", 1380, 35, 4),  # 23:00 (Freight right before night window)
         ]
 
         slot_counter = 1
@@ -119,7 +119,7 @@ class SyntheticDataSource(DataSource):
                                 "id": f"TS-{slot_counter:04d}",
                                 "corridor_id": corridor_id,
                                 "section_id": section["id"],
-                                "train_no": f"{train_no}-D{day+1}",
+                                "train_no": f"{train_no}-D{day + 1}",
                                 "start_min": sec_start,
                                 "end_min": sec_end,
                                 "priority": priority,
@@ -201,9 +201,33 @@ class SyntheticDataSource(DataSource):
         snt_task_templates = [
             ("Electric Point Machine Overhaul & Lubrication", "Point Machine", 90, 4, 4, 0.65, 2),
             ("Track Circuit Lead & Impedance Bond Testing", "Track Circuit", 60, 3, 3, 0.20, 2),
-            ("Digital Axle Counter (DAC) Sensor Reset & Calibration", "Axle Counter", 90, 5, 5, 0.85, 2),
-            ("Multi-Aspect Color Light Signal Unit Replacement", "Signal Aspect", 120, 4, 3, 0.50, 3),
-            ("Solid State Interlocking (SSI) Relay Rack Maintenance", "Interlocking Relay", 150, 5, 4, 0.60, 2),
+            (
+                "Digital Axle Counter (DAC) Sensor Reset & Calibration",
+                "Axle Counter",
+                90,
+                5,
+                5,
+                0.85,
+                2,
+            ),
+            (
+                "Multi-Aspect Color Light Signal Unit Replacement",
+                "Signal Aspect",
+                120,
+                4,
+                3,
+                0.50,
+                3,
+            ),
+            (
+                "Solid State Interlocking (SSI) Relay Rack Maintenance",
+                "Interlocking Relay",
+                150,
+                5,
+                4,
+                0.60,
+                2,
+            ),
             ("Audio Frequency Track Circuit (AFTC) Tuning", "Track Circuit", 90, 4, 3, 0.35, 2),
         ]
 
@@ -211,9 +235,15 @@ class SyntheticDataSource(DataSource):
 
         # We will generate: 20 ENG, 15 TRD, 15 SNT = 50 tasks
         dept_configs = [
-            ("ENGINEERING", eng_task_templates, 20, False, True),  # No power off, track block required
-            ("TRACTION", trd_task_templates, 15, True, False),     # Power off required, no track block
-            ("SNT", snt_task_templates, 15, False, False),         # Co-locatable with both TRD & ENG
+            (
+                "ENGINEERING",
+                eng_task_templates,
+                20,
+                False,
+                True,
+            ),  # No power off, track block required
+            ("TRACTION", trd_task_templates, 15, True, False),  # Power off required, no track block
+            ("SNT", snt_task_templates, 15, False, False),  # Co-locatable with both TRD & ENG
         ]
 
         for dept, templates, count, req_power, req_track in dept_configs:

@@ -216,6 +216,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/priority": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get ranked tasks with explainable priority scores
+         * @description Compute explainable multi-factor priority scores for maintenance tasks.
+         *
+         *     Formula:
+         *       score = 100 * (0.35*criticality_norm + 0.30*severity_norm + 0.20*overdue_ratio + 0.15*traffic_impact)
+         *     All factors normalized to [0, 1]. Total score strictly in [0, 100].
+         */
+        get: operations["get_priority_ranking_api_priority_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bundles/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get candidate task bundles that can share a maintenance block
+         * @description Discover and return all candidate task bundles respecting compatibility rules.
+         *
+         *     Rules applied:
+         *     - Geographic: Same corridor; same section (or adjacent if enabled).
+         *     - Temporal: Overlapping feasible windows wide enough for bundle duration.
+         *     - Department & Safety Matrix: TRD+SNT parallel, ENG+SNT parallel/sequential, ENG+TRD power-off safe.
+         *     - Resource capacity: Combined departmental crew does not exceed window limits.
+         */
+        get: operations["get_candidate_bundles_api_bundles_candidates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bundles/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check pairwise compatibility between two specific tasks
+         * @description Evaluate pairwise compatibility between two tasks with exact explainability.
+         */
+        get: operations["check_tasks_compatibility_api_bundles_check_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/seed": {
         parameters: {
             query?: never;
@@ -273,6 +343,135 @@ export interface components {
              */
             is_night_window: boolean;
         };
+        /**
+         * BundleCandidateSchema
+         * @description Candidate bundle of mutually compatible tasks sharing a maintenance block.
+         */
+        BundleCandidateSchema: {
+            /**
+             * Bundle Id
+             * @description Deterministic bundle identifier
+             */
+            bundle_id: string;
+            /**
+             * Task Ids
+             * @description List of task IDs bundled together
+             */
+            task_ids: string[];
+            /**
+             * Section Id
+             * @description Physical track section ID
+             */
+            section_id: string;
+            /**
+             * Corridor Id
+             * @description Corridor ID
+             */
+            corridor_id: string;
+            /**
+             * Departments
+             * @description List of departments involved
+             */
+            departments: string[];
+            /**
+             * Is Cross Departmental
+             * @description True if bundling across multiple departments
+             */
+            is_cross_departmental: boolean;
+            /**
+             * Execution Mode
+             * @description Execution mode: PARALLEL | SEQUENTIAL | HYBRID
+             */
+            execution_mode: string;
+            /**
+             * Duration Min
+             * @description Total required block duration in minutes
+             */
+            duration_min: number;
+            /**
+             * Disruption Savings Min
+             * @description Minutes saved compared to separate unbundled blocks
+             */
+            disruption_savings_min: number;
+            /**
+             * Efficiency Gain Pct
+             * @description Percentage reduction in corridor disruption time
+             */
+            efficiency_gain_pct: number;
+            /**
+             * Earliest Start
+             * @description Feasible bundle earliest start (minute offset)
+             */
+            earliest_start: number;
+            /**
+             * Deadline
+             * @description Feasible bundle deadline (minute offset)
+             */
+            deadline: number;
+            /**
+             * Feasibility Window Min
+             * @description Available window length (deadline - earliest_start)
+             */
+            feasibility_window_min: number;
+            /**
+             * Requires Power Off
+             * @description True if OHE 25kV de-energization power block is required
+             */
+            requires_power_off: boolean;
+            /**
+             * Requires Track Block
+             * @description True if track possession block is required
+             */
+            requires_track_block: boolean;
+            /**
+             * Crew Needed By Dept
+             * @description Concurrent crew required broken down by department
+             */
+            crew_needed_by_dept: {
+                [key: string]: number;
+            };
+            /**
+             * Combined Priority Score
+             * @description Aggregate priority score for all tasks in bundle
+             */
+            combined_priority_score: number;
+            /**
+             * Compatibility Reasons
+             * @description Explainable reasons why tasks are compatible
+             */
+            compatibility_reasons: string[];
+            /**
+             * Tasks Summary
+             * @description Task details in this bundle
+             */
+            tasks_summary: components["schemas"]["TaskSummarySchema"][];
+        };
+        /**
+         * CandidateBundlesListResponse
+         * @description Response containing all discovered candidate bundles matching query filters.
+         */
+        CandidateBundlesListResponse: {
+            /**
+             * Total Candidates
+             * @description Total candidate bundles discovered
+             */
+            total_candidates: number;
+            /**
+             * Cross Departmental Count
+             * @description Number of multi-department bundles
+             */
+            cross_departmental_count: number;
+            /**
+             * Total Potential Savings Min
+             * @description Total corridor disruption minutes saved if all best bundles executed
+             */
+            total_potential_savings_min: number;
+            /**
+             * Candidates
+             * @description List of candidate bundles sorted by disruption savings
+             */
+            candidates: components["schemas"]["BundleCandidateSchema"][];
+        };
         /** CorridorDetailResponse */
         CorridorDetailResponse: {
             /**
@@ -303,6 +502,32 @@ export interface components {
              * @description Corridor name
              */
             name: string;
+        };
+        /**
+         * FactorContributionsSchema
+         * @description Points contribution of each factor to the total 0-100 score.
+         */
+        FactorContributionsSchema: {
+            /**
+             * Criticality
+             * @description Criticality point contribution
+             */
+            criticality: number;
+            /**
+             * Defect Severity
+             * @description Defect severity point contribution
+             */
+            defect_severity: number;
+            /**
+             * Overdue Ratio
+             * @description Overdue ratio point contribution
+             */
+            overdue_ratio: number;
+            /**
+             * Traffic Impact
+             * @description Traffic impact point contribution
+             */
+            traffic_impact: number;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -336,6 +561,146 @@ export interface components {
              * @description Database connectivity status: healthy or degraded
              */
             database: string;
+        };
+        /**
+         * PairwiseCompatibilityResponse
+         * @description Detailed response for pairwise task compatibility evaluation.
+         */
+        PairwiseCompatibilityResponse: {
+            /** Task A Id */
+            task_a_id: string;
+            /** Task B Id */
+            task_b_id: string;
+            /** Is Compatible */
+            is_compatible: boolean;
+            /** Conflict Code */
+            conflict_code?: string | null;
+            /** Conflict Reason */
+            conflict_reason?: string | null;
+            /** Execution Mode */
+            execution_mode: string;
+            /** Combined Duration Min */
+            combined_duration_min: number;
+            /** Disruption Savings Min */
+            disruption_savings_min: number;
+            /** Requires Power Off */
+            requires_power_off: boolean;
+            /** Requires Track Block */
+            requires_track_block: boolean;
+            /** Reasons */
+            reasons: string[];
+        };
+        /**
+         * PriorityItemResponse
+         * @description Ranked maintenance task with explainable score breakdown and priority band.
+         */
+        PriorityItemResponse: {
+            /**
+             * Task Id
+             * @description Unique task identifier
+             */
+            task_id: string;
+            /**
+             * Title
+             * @description Task title
+             */
+            title: string;
+            /**
+             * Department
+             * @description Department: ENGINEERING | TRACTION | SNT
+             */
+            department: string;
+            /**
+             * Section Id
+             * @description Track section ID
+             */
+            section_id: string;
+            /**
+             * Score
+             * @description Computed priority score (0.0 to 100.0)
+             */
+            score: number;
+            /**
+             * Rank
+             * @description Rank position (1 = highest priority)
+             */
+            rank: number;
+            /**
+             * Priority Band
+             * @description Priority classification band: CRITICAL | HIGH | MEDIUM | LOW
+             */
+            priority_band: string;
+            /** @description Detailed point breakdown by factor */
+            contributions: components["schemas"]["FactorContributionsSchema"];
+            /**
+             * Factors Normalized
+             * @description Normalized factor values (0.0 to 1.0)
+             */
+            factors_normalized: {
+                [key: string]: number;
+            };
+            /**
+             * Raw Factors
+             * @description Raw input factors before normalization
+             */
+            raw_factors: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * PriorityListResponse
+         * @description Response containing ranked tasks, summary band counts, and weights used.
+         */
+        PriorityListResponse: {
+            /**
+             * Total Tasks
+             * @description Total number of tasks scored
+             */
+            total_tasks: number;
+            /** @description Weights applied for scoring */
+            weights_used: components["schemas"]["PriorityWeightsInput"];
+            /**
+             * Band Counts
+             * @description Distribution count of tasks across priority bands
+             */
+            band_counts: {
+                [key: string]: number;
+            };
+            /**
+             * Tasks
+             * @description Ranked list of tasks in descending priority order
+             */
+            tasks: components["schemas"]["PriorityItemResponse"][];
+        };
+        /**
+         * PriorityWeightsInput
+         * @description Configurable weights for the multi-factor priority score calculation.
+         */
+        PriorityWeightsInput: {
+            /**
+             * Criticality
+             * @description Weight for asset criticality
+             * @default 0.35
+             */
+            criticality: number;
+            /**
+             * Defect Severity
+             * @description Weight for defect severity
+             * @default 0.3
+             */
+            defect_severity: number;
+            /**
+             * Overdue Ratio
+             * @description Weight for maintenance overdue ratio
+             * @default 0.2
+             */
+            overdue_ratio: number;
+            /**
+             * Traffic Impact
+             * @description Weight for traffic impact factor
+             * @default 0.15
+             */
+            traffic_impact: number;
         };
         /** ResourceResponse */
         ResourceResponse: {
@@ -631,6 +996,24 @@ export interface components {
              * @description Unique task ID
              */
             id: string;
+        };
+        /**
+         * TaskSummarySchema
+         * @description Brief task preview within a bundle candidate.
+         */
+        TaskSummarySchema: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Department */
+            department: string;
+            /** Asset Type */
+            asset_type: string;
+            /** Duration Min */
+            duration_min: number;
+            /** Priority Score */
+            priority_score: number;
         };
         /** TaskUpdate */
         TaskUpdate: {
@@ -1114,6 +1497,128 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResourceResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_priority_ranking_api_priority_get: {
+        parameters: {
+            query?: {
+                /** @description Weight for criticality */
+                weight_criticality?: number;
+                /** @description Weight for defect severity */
+                weight_severity?: number;
+                /** @description Weight for overdue ratio */
+                weight_overdue?: number;
+                /** @description Weight for traffic impact */
+                weight_traffic?: number;
+                /** @description Filter by department */
+                department?: string | null;
+                /** @description Filter by section ID */
+                section_id?: string | null;
+                /** @description Filter by priority band: CRITICAL | HIGH | MEDIUM | LOW */
+                priority_band?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriorityListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_candidate_bundles_api_bundles_candidates_get: {
+        parameters: {
+            query?: {
+                /** @description Filter bundles by corridor ID */
+                corridor_id?: string | null;
+                /** @description Filter bundles by section ID */
+                section_id?: string | null;
+                /** @description Filter bundles containing this department */
+                department?: string | null;
+                /** @description Return only cross-departmental bundles */
+                cross_department_only?: boolean;
+                /** @description Maximum number of tasks per bundle */
+                max_bundle_size?: number;
+                /** @description Allow bundling across adjacent physical sections */
+                allow_adjacent_sections?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateBundlesListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_tasks_compatibility_api_bundles_check_get: {
+        parameters: {
+            query: {
+                /** @description First task ID */
+                task_a_id: string;
+                /** @description Second task ID */
+                task_b_id: string;
+                /** @description Allow bundling across adjacent physical sections */
+                allow_adjacent_sections?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PairwiseCompatibilityResponse"];
                 };
             };
             /** @description Validation Error */
