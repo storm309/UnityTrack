@@ -1,0 +1,1555 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "UnityTrack API",
+    "description": "Decision-support platform for Indian Railways maintenance planning",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Service health status",
+        "description": "Return the health status of UnityTrack API service and database connectivity.",
+        "operationId": "get_health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/corridors": {
+      "get": {
+        "tags": [
+          "corridors"
+        ],
+        "summary": "List all railway corridors",
+        "description": "Retrieve all available railway corridors.",
+        "operationId": "list_corridors_api_corridors_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CorridorResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Corridors Api Corridors Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/corridors/{corridor_id}": {
+      "get": {
+        "tags": [
+          "corridors"
+        ],
+        "summary": "Get corridor with ordered sections",
+        "description": "Retrieve specific corridor with all ordered child sections.",
+        "operationId": "get_corridor_api_corridors__corridor_id__get",
+        "parameters": [
+          {
+            "name": "corridor_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Corridor Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorridorDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sections": {
+      "get": {
+        "tags": [
+          "sections"
+        ],
+        "summary": "List railway track sections",
+        "description": "Retrieve track sections, optionally filtered by corridor.",
+        "operationId": "list_sections_api_sections_get",
+        "parameters": [
+          {
+            "name": "corridor_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by corridor ID",
+              "title": "Corridor Id"
+            },
+            "description": "Filter by corridor ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SectionResponse"
+                  },
+                  "title": "Response List Sections Api Sections Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sections/{section_id}": {
+      "get": {
+        "tags": [
+          "sections"
+        ],
+        "summary": "Get section details",
+        "description": "Retrieve details of a specific track section.",
+        "operationId": "get_section_api_sections__section_id__get",
+        "parameters": [
+          {
+            "name": "section_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Section Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SectionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "List maintenance tasks with filtering",
+        "description": "List maintenance tasks with optional department, section, and status filters.",
+        "operationId": "list_tasks_api_tasks_get",
+        "parameters": [
+          {
+            "name": "department",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by department",
+              "title": "Department"
+            },
+            "description": "Filter by department"
+          },
+          {
+            "name": "section_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by section ID",
+              "title": "Section Id"
+            },
+            "description": "Filter by section ID"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by status",
+              "title": "Status"
+            },
+            "description": "Filter by status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskResponse"
+                  },
+                  "title": "Response List Tasks Api Tasks Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Create maintenance task",
+        "description": "Create a new maintenance task with constraint validation.",
+        "operationId": "create_task_api_tasks_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks/{task_id}": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get maintenance task by ID",
+        "description": "Retrieve details for a single maintenance task.",
+        "operationId": "get_task_api_tasks__task_id__get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Update maintenance task",
+        "description": "Update existing maintenance task attributes.",
+        "operationId": "update_task_api_tasks__task_id__put",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Delete maintenance task",
+        "description": "Delete a maintenance task.",
+        "operationId": "delete_task_api_tasks__task_id__delete",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trains": {
+      "get": {
+        "tags": [
+          "trains"
+        ],
+        "summary": "List train timetable slots",
+        "description": "Retrieve train timetable slots with optional corridor, section, and train number filtering.",
+        "operationId": "list_trains_api_trains_get",
+        "parameters": [
+          {
+            "name": "corridor_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by corridor ID",
+              "title": "Corridor Id"
+            },
+            "description": "Filter by corridor ID"
+          },
+          {
+            "name": "section_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by section ID",
+              "title": "Section Id"
+            },
+            "description": "Filter by section ID"
+          },
+          {
+            "name": "train_no",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by train number",
+              "title": "Train No"
+            },
+            "description": "Filter by train number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainSlotResponse"
+                  },
+                  "title": "Response List Trains Api Trains Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/windows": {
+      "get": {
+        "tags": [
+          "windows"
+        ],
+        "summary": "List allowable maintenance block windows",
+        "description": "Retrieve permissible maintenance windows derived from timetable gaps.",
+        "operationId": "list_windows_api_windows_get",
+        "parameters": [
+          {
+            "name": "section_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by section ID",
+              "title": "Section Id"
+            },
+            "description": "Filter by section ID"
+          },
+          {
+            "name": "is_night_window",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by night window flag",
+              "title": "Is Night Window"
+            },
+            "description": "Filter by night window flag"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BlockWindowResponse"
+                  },
+                  "title": "Response List Windows Api Windows Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/resources": {
+      "get": {
+        "tags": [
+          "resources"
+        ],
+        "summary": "List departmental maintenance resources",
+        "description": "Retrieve departmental maintenance capacity limits.",
+        "operationId": "list_resources_api_resources_get",
+        "parameters": [
+          {
+            "name": "department",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by department",
+              "title": "Department"
+            },
+            "description": "Filter by department"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResourceResponse"
+                  },
+                  "title": "Response List Resources Api Resources Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/seed": {
+      "post": {
+        "tags": [
+          "seed"
+        ],
+        "summary": "Seed database with deterministic synthetic data",
+        "description": "Seed or re-seed the database with deterministic synthetic railway data.",
+        "operationId": "trigger_seed_api_seed_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedRequest",
+                "default": {
+                  "seed": 42,
+                  "reset": true
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BlockWindowResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique maintenance window ID"
+          },
+          "section_id": {
+            "type": "string",
+            "title": "Section Id",
+            "description": "Section ID"
+          },
+          "start_min": {
+            "type": "integer",
+            "title": "Start Min",
+            "description": "Window start minute from horizon start"
+          },
+          "end_min": {
+            "type": "integer",
+            "title": "End Min",
+            "description": "Window end minute from horizon start"
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min",
+            "description": "Duration in minutes"
+          },
+          "is_night_window": {
+            "type": "boolean",
+            "title": "Is Night Window",
+            "description": "True if window occurs during night traffic lull"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "section_id",
+          "start_min",
+          "end_min",
+          "duration_min",
+          "is_night_window"
+        ],
+        "title": "BlockWindowResponse"
+      },
+      "CorridorDetailResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique corridor identifier"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Corridor name"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/SectionBase"
+            },
+            "type": "array",
+            "title": "Sections",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "CorridorDetailResponse"
+      },
+      "CorridorResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique corridor identifier"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Corridor name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "CorridorResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Application health status",
+            "default": "ok"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment",
+            "description": "Active runtime environment"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "description": "API version",
+            "default": "0.1.0"
+          },
+          "database": {
+            "type": "string",
+            "title": "Database",
+            "description": "Database connectivity status: healthy or degraded"
+          }
+        },
+        "type": "object",
+        "required": [
+          "environment",
+          "database"
+        ],
+        "title": "HealthResponse",
+        "description": "Health check response schema."
+      },
+      "ResourceResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Resource ID"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department",
+            "description": "Department name"
+          },
+          "capacity_per_window": {
+            "type": "integer",
+            "title": "Capacity Per Window",
+            "description": "Maximum concurrent crews per window"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "department",
+          "capacity_per_window"
+        ],
+        "title": "ResourceResponse"
+      },
+      "SectionBase": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique section identifier"
+          },
+          "corridor_id": {
+            "type": "string",
+            "title": "Corridor Id",
+            "description": "Corridor identifier"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Section name"
+          },
+          "km_start": {
+            "type": "number",
+            "title": "Km Start",
+            "description": "Starting kilometer post"
+          },
+          "km_end": {
+            "type": "number",
+            "title": "Km End",
+            "description": "Ending kilometer post"
+          },
+          "order_index": {
+            "type": "integer",
+            "title": "Order Index",
+            "description": "Sequential order of the section on the corridor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "corridor_id",
+          "name",
+          "km_start",
+          "km_end",
+          "order_index"
+        ],
+        "title": "SectionBase"
+      },
+      "SectionResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique section identifier"
+          },
+          "corridor_id": {
+            "type": "string",
+            "title": "Corridor Id",
+            "description": "Corridor identifier"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Section name"
+          },
+          "km_start": {
+            "type": "number",
+            "title": "Km Start",
+            "description": "Starting kilometer post"
+          },
+          "km_end": {
+            "type": "number",
+            "title": "Km End",
+            "description": "Ending kilometer post"
+          },
+          "order_index": {
+            "type": "integer",
+            "title": "Order Index",
+            "description": "Sequential order of the section on the corridor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "corridor_id",
+          "name",
+          "km_start",
+          "km_end",
+          "order_index"
+        ],
+        "title": "SectionResponse"
+      },
+      "SeedRequest": {
+        "properties": {
+          "seed": {
+            "type": "integer",
+            "title": "Seed",
+            "description": "Random seed for deterministic generation",
+            "default": 42
+          },
+          "reset": {
+            "type": "boolean",
+            "title": "Reset",
+            "description": "Clear existing data before seeding",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "SeedRequest"
+      },
+      "SeedResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "ok"
+          },
+          "seed": {
+            "type": "integer",
+            "title": "Seed"
+          },
+          "records": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Records"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seed",
+          "records"
+        ],
+        "title": "SeedResponse"
+      },
+      "TaskCreate": {
+        "properties": {
+          "department": {
+            "type": "string",
+            "title": "Department",
+            "description": "Department: ENGINEERING | TRACTION | SNT"
+          },
+          "section_id": {
+            "type": "string",
+            "title": "Section Id",
+            "description": "Section ID where task is located"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Task title/description"
+          },
+          "asset_type": {
+            "type": "string",
+            "title": "Asset Type",
+            "description": "Asset type (Rails, OHE, Turnout, etc.)"
+          },
+          "duration_min": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Duration Min",
+            "description": "Duration in minutes"
+          },
+          "earliest_start": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Earliest Start",
+            "description": "Earliest feasible start minute from horizon start"
+          },
+          "deadline": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Deadline",
+            "description": "Hard deadline minute from horizon start"
+          },
+          "criticality": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Criticality",
+            "description": "Asset criticality (1 to 5)"
+          },
+          "defect_severity": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Defect Severity",
+            "description": "Defect severity (1 to 5)"
+          },
+          "last_done_date": {
+            "type": "string",
+            "title": "Last Done Date",
+            "description": "ISO date string of last maintenance"
+          },
+          "due_date": {
+            "type": "string",
+            "title": "Due Date",
+            "description": "ISO date string when maintenance is due"
+          },
+          "traffic_impact": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Traffic Impact",
+            "description": "Normalized traffic impact factor (0.0 to 1.0)"
+          },
+          "crew_needed": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Crew Needed",
+            "description": "Number of crews required"
+          },
+          "requires_power_off": {
+            "type": "boolean",
+            "title": "Requires Power Off",
+            "description": "Whether OHE power must be turned off",
+            "default": false
+          },
+          "requires_track_block": {
+            "type": "boolean",
+            "title": "Requires Track Block",
+            "description": "Whether track line block is required",
+            "default": true
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Task status (PENDING, SCHEDULED, COMPLETED, CANCELLED)",
+            "default": "PENDING"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "Optional custom ID; auto-generated if omitted"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department",
+          "section_id",
+          "title",
+          "asset_type",
+          "duration_min",
+          "earliest_start",
+          "deadline",
+          "criticality",
+          "defect_severity",
+          "last_done_date",
+          "due_date",
+          "traffic_impact",
+          "crew_needed"
+        ],
+        "title": "TaskCreate"
+      },
+      "TaskResponse": {
+        "properties": {
+          "department": {
+            "type": "string",
+            "title": "Department",
+            "description": "Department: ENGINEERING | TRACTION | SNT"
+          },
+          "section_id": {
+            "type": "string",
+            "title": "Section Id",
+            "description": "Section ID where task is located"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Task title/description"
+          },
+          "asset_type": {
+            "type": "string",
+            "title": "Asset Type",
+            "description": "Asset type (Rails, OHE, Turnout, etc.)"
+          },
+          "duration_min": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Duration Min",
+            "description": "Duration in minutes"
+          },
+          "earliest_start": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Earliest Start",
+            "description": "Earliest feasible start minute from horizon start"
+          },
+          "deadline": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Deadline",
+            "description": "Hard deadline minute from horizon start"
+          },
+          "criticality": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Criticality",
+            "description": "Asset criticality (1 to 5)"
+          },
+          "defect_severity": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Defect Severity",
+            "description": "Defect severity (1 to 5)"
+          },
+          "last_done_date": {
+            "type": "string",
+            "title": "Last Done Date",
+            "description": "ISO date string of last maintenance"
+          },
+          "due_date": {
+            "type": "string",
+            "title": "Due Date",
+            "description": "ISO date string when maintenance is due"
+          },
+          "traffic_impact": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Traffic Impact",
+            "description": "Normalized traffic impact factor (0.0 to 1.0)"
+          },
+          "crew_needed": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Crew Needed",
+            "description": "Number of crews required"
+          },
+          "requires_power_off": {
+            "type": "boolean",
+            "title": "Requires Power Off",
+            "description": "Whether OHE power must be turned off",
+            "default": false
+          },
+          "requires_track_block": {
+            "type": "boolean",
+            "title": "Requires Track Block",
+            "description": "Whether track line block is required",
+            "default": true
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Task status (PENDING, SCHEDULED, COMPLETED, CANCELLED)",
+            "default": "PENDING"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique task ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department",
+          "section_id",
+          "title",
+          "asset_type",
+          "duration_min",
+          "earliest_start",
+          "deadline",
+          "criticality",
+          "defect_severity",
+          "last_done_date",
+          "due_date",
+          "traffic_impact",
+          "crew_needed",
+          "id"
+        ],
+        "title": "TaskResponse"
+      },
+      "TaskUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "department": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department"
+          },
+          "section_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Id"
+          },
+          "asset_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset Type"
+          },
+          "duration_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Min"
+          },
+          "earliest_start": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Earliest Start"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "criticality": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Criticality"
+          },
+          "defect_severity": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Defect Severity"
+          },
+          "last_done_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Done Date"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "traffic_impact": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Traffic Impact"
+          },
+          "crew_needed": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Crew Needed"
+          },
+          "requires_power_off": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requires Power Off"
+          },
+          "requires_track_block": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requires Track Block"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "title": "TaskUpdate"
+      },
+      "TrainSlotResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique train slot ID"
+          },
+          "corridor_id": {
+            "type": "string",
+            "title": "Corridor Id",
+            "description": "Corridor ID"
+          },
+          "section_id": {
+            "type": "string",
+            "title": "Section Id",
+            "description": "Section ID"
+          },
+          "train_no": {
+            "type": "string",
+            "title": "Train No",
+            "description": "Train identifier"
+          },
+          "start_min": {
+            "type": "integer",
+            "title": "Start Min",
+            "description": "Occupancy start minute from horizon start"
+          },
+          "end_min": {
+            "type": "integer",
+            "title": "End Min",
+            "description": "Occupancy end minute from horizon start"
+          },
+          "priority": {
+            "type": "integer",
+            "title": "Priority",
+            "description": "Train priority (1 highest to 5 lowest)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "corridor_id",
+          "section_id",
+          "train_no",
+          "start_min",
+          "end_min",
+          "priority"
+        ],
+        "title": "TrainSlotResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
