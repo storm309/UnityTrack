@@ -1016,6 +1016,113 @@
         }
       }
     },
+    "/api/plans/generate": {
+      "post": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "Generate optimized maintenance schedule using CP-SAT constraint solver",
+        "description": "Generate an optimal maintenance plan with multi-department bundling and 0 train conflicts.",
+        "operationId": "generate_plan_api_plans_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanGenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plans/{plan_id}": {
+      "get": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "Get details of a generated plan by ID",
+        "description": "Retrieve full plan with blocks, validation, and metrics.",
+        "operationId": "get_plan_api_plans__plan_id__get",
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plans": {
+      "get": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "List all generated plans",
+        "description": "Return summaries of all generated maintenance plans.",
+        "operationId": "list_plans_api_plans_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/seed": {
       "post": {
         "tags": [
@@ -1282,6 +1389,55 @@
         "title": "CandidateBundlesListResponse",
         "description": "Response containing all discovered candidate bundles matching query filters."
       },
+      "ComparisonMetricsResponse": {
+        "properties": {
+          "baseline_blocks": {
+            "type": "integer",
+            "title": "Baseline Blocks"
+          },
+          "optimized_blocks": {
+            "type": "integer",
+            "title": "Optimized Blocks"
+          },
+          "block_reduction_count": {
+            "type": "integer",
+            "title": "Block Reduction Count"
+          },
+          "block_reduction_pct": {
+            "type": "number",
+            "title": "Block Reduction Pct"
+          },
+          "baseline_disruption_min": {
+            "type": "integer",
+            "title": "Baseline Disruption Min"
+          },
+          "optimized_disruption_min": {
+            "type": "integer",
+            "title": "Optimized Disruption Min"
+          },
+          "disruption_savings_min": {
+            "type": "integer",
+            "title": "Disruption Savings Min"
+          },
+          "disruption_savings_pct": {
+            "type": "number",
+            "title": "Disruption Savings Pct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "baseline_blocks",
+          "optimized_blocks",
+          "block_reduction_count",
+          "block_reduction_pct",
+          "baseline_disruption_min",
+          "optimized_disruption_min",
+          "disruption_savings_min",
+          "disruption_savings_pct"
+        ],
+        "title": "ComparisonMetricsResponse",
+        "description": "Comparison benchmarks against the siloed departmental baseline."
+      },
       "CorridorDetailResponse": {
         "properties": {
           "id": {
@@ -1487,6 +1643,403 @@
         ],
         "title": "PairwiseCompatibilityResponse",
         "description": "Detailed response for pairwise task compatibility evaluation."
+      },
+      "PlanGenerateRequest": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Human-readable plan name",
+            "default": "Optimized Maintenance Plan"
+          },
+          "corridor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corridor Id",
+            "description": "Optional corridor filter"
+          },
+          "time_limit_seconds": {
+            "type": "number",
+            "maximum": 300.0,
+            "minimum": 1.0,
+            "title": "Time Limit Seconds",
+            "description": "CP-SAT solver timeout limit in seconds",
+            "default": 30.0
+          },
+          "weight_num_blocks": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Weight Num Blocks",
+            "description": "Objective weight penalizing block openings",
+            "default": 1000.0
+          },
+          "weight_disruption_minutes": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Weight Disruption Minutes",
+            "description": "Objective weight penalizing corridor disruption duration",
+            "default": 5.0
+          },
+          "weight_priority_lateness": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Weight Priority Lateness",
+            "description": "Objective weight scheduling high-priority tasks earlier",
+            "default": 1.0
+          },
+          "allow_adjacent_sections": {
+            "type": "boolean",
+            "title": "Allow Adjacent Sections",
+            "description": "Allow bundling across adjacent physical sections",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "PlanGenerateRequest",
+        "description": "Request payload for generating an optimized maintenance schedule."
+      },
+      "PlanListResponse": {
+        "properties": {
+          "total_plans": {
+            "type": "integer",
+            "title": "Total Plans"
+          },
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/PlanSummaryResponse"
+            },
+            "type": "array",
+            "title": "Plans"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_plans",
+          "plans"
+        ],
+        "title": "PlanListResponse",
+        "description": "List of generated maintenance plans."
+      },
+      "PlanMetricsResponse": {
+        "properties": {
+          "total_blocks": {
+            "type": "integer",
+            "title": "Total Blocks"
+          },
+          "total_disruption_minutes": {
+            "type": "integer",
+            "title": "Total Disruption Minutes"
+          },
+          "cross_departmental_blocks": {
+            "type": "integer",
+            "title": "Cross Departmental Blocks"
+          },
+          "tasks_scheduled": {
+            "type": "integer",
+            "title": "Tasks Scheduled"
+          },
+          "delayed_tasks": {
+            "type": "integer",
+            "title": "Delayed Tasks"
+          },
+          "solve_time_seconds": {
+            "type": "number",
+            "title": "Solve Time Seconds"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "objective_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_blocks",
+          "total_disruption_minutes",
+          "cross_departmental_blocks",
+          "tasks_scheduled",
+          "delayed_tasks",
+          "solve_time_seconds",
+          "status"
+        ],
+        "title": "PlanMetricsResponse",
+        "description": "Core optimization schedule metrics."
+      },
+      "PlanResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "scenario_params": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario Params"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/PlanMetricsResponse"
+          },
+          "comparison": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComparisonMetricsResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "validation": {
+            "$ref": "#/components/schemas/ValidationSummaryResponse"
+          },
+          "planned_blocks": {
+            "items": {
+              "$ref": "#/components/schemas/PlannedBlockResponse"
+            },
+            "type": "array",
+            "title": "Planned Blocks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "status",
+          "created_at",
+          "metrics",
+          "validation",
+          "planned_blocks"
+        ],
+        "title": "PlanResponse",
+        "description": "Full maintenance schedule plan response with blocks, validation, and benchmarks."
+      },
+      "PlanSummaryResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "total_blocks": {
+            "type": "integer",
+            "title": "Total Blocks"
+          },
+          "total_disruption_minutes": {
+            "type": "integer",
+            "title": "Total Disruption Minutes"
+          },
+          "tasks_scheduled": {
+            "type": "integer",
+            "title": "Tasks Scheduled"
+          },
+          "is_valid": {
+            "type": "boolean",
+            "title": "Is Valid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "status",
+          "created_at",
+          "total_blocks",
+          "total_disruption_minutes",
+          "tasks_scheduled",
+          "is_valid"
+        ],
+        "title": "PlanSummaryResponse",
+        "description": "Brief summary of a generated plan."
+      },
+      "PlannedBlockResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "section_id": {
+            "type": "string",
+            "title": "Section Id"
+          },
+          "section_name": {
+            "type": "string",
+            "title": "Section Name"
+          },
+          "start_min": {
+            "type": "integer",
+            "title": "Start Min"
+          },
+          "end_min": {
+            "type": "integer",
+            "title": "End Min"
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min"
+          },
+          "task_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Task Ids"
+          },
+          "departments": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Departments"
+          },
+          "is_cross_departmental": {
+            "type": "boolean",
+            "title": "Is Cross Departmental"
+          },
+          "requires_power_off": {
+            "type": "boolean",
+            "title": "Requires Power Off"
+          },
+          "requires_track_block": {
+            "type": "boolean",
+            "title": "Requires Track Block"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/PlannedTaskResponse"
+            },
+            "type": "array",
+            "title": "Tasks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "section_id",
+          "section_name",
+          "start_min",
+          "end_min",
+          "duration_min",
+          "task_ids",
+          "departments",
+          "is_cross_departmental",
+          "requires_power_off",
+          "requires_track_block",
+          "tasks"
+        ],
+        "title": "PlannedBlockResponse",
+        "description": "Allocated maintenance block bundling one or more compatible tasks."
+      },
+      "PlannedTaskResponse": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department"
+          },
+          "section_id": {
+            "type": "string",
+            "title": "Section Id"
+          },
+          "start_min": {
+            "type": "integer",
+            "title": "Start Min"
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min"
+          },
+          "finish_min": {
+            "type": "integer",
+            "title": "Finish Min"
+          },
+          "is_delayed": {
+            "type": "boolean",
+            "title": "Is Delayed"
+          },
+          "delay_minutes": {
+            "type": "integer",
+            "title": "Delay Minutes"
+          },
+          "priority_score": {
+            "type": "number",
+            "title": "Priority Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id",
+          "title",
+          "department",
+          "section_id",
+          "start_min",
+          "duration_min",
+          "finish_min",
+          "is_delayed",
+          "delay_minutes",
+          "priority_score"
+        ],
+        "title": "PlannedTaskResponse",
+        "description": "Scheduled task details within a planned maintenance block."
       },
       "PriorityItemResponse": {
         "properties": {
@@ -2361,6 +2914,41 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "ValidationSummaryResponse": {
+        "properties": {
+          "is_valid": {
+            "type": "boolean",
+            "title": "Is Valid"
+          },
+          "total_violations": {
+            "type": "integer",
+            "title": "Total Violations"
+          },
+          "violations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Violations"
+          },
+          "checks_passed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Checks Passed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_valid",
+          "total_violations",
+          "violations",
+          "checks_passed"
+        ],
+        "title": "ValidationSummaryResponse",
+        "description": "Independent validator results verifying all hard railway constraints."
       }
     }
   }

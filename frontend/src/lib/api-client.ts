@@ -18,6 +18,11 @@ export type FactorContributionsSchema = components["schemas"]["FactorContributio
 export type CandidateBundlesListResponse = components["schemas"]["CandidateBundlesListResponse"];
 export type BundleCandidateSchema = components["schemas"]["BundleCandidateSchema"];
 export type PairwiseCompatibilityResponse = components["schemas"]["PairwiseCompatibilityResponse"];
+export type PlanResponse = components["schemas"]["PlanResponse"];
+export type PlanListResponse = components["schemas"]["PlanListResponse"];
+export type PlanGenerateRequest = components["schemas"]["PlanGenerateRequest"];
+export type PlannedBlockResponse = components["schemas"]["PlannedBlockResponse"];
+export type ComparisonMetricsResponse = components["schemas"]["ComparisonMetricsResponse"];
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -207,4 +212,20 @@ export async function checkTasksCompatibility(params: {
   }
   return request<PairwiseCompatibilityResponse>(`/api/bundles/check?${searchParams.toString()}`);
 }
+
+export async function generatePlan(requestPayload: PlanGenerateRequest): Promise<PlanResponse> {
+  return request<PlanResponse>("/api/plans/generate", {
+    method: "POST",
+    body: JSON.stringify(requestPayload),
+  });
+}
+
+export async function getPlan(id: string): Promise<PlanResponse> {
+  return request<PlanResponse>(`/api/plans/${id}`);
+}
+
+export async function getPlans(): Promise<PlanListResponse> {
+  return request<PlanListResponse>("/api/plans");
+}
+
 

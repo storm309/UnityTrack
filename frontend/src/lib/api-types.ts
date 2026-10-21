@@ -286,6 +286,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plans/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate optimized maintenance schedule using CP-SAT constraint solver
+         * @description Generate an optimal maintenance plan with multi-department bundling and 0 train conflicts.
+         */
+        post: operations["generate_plan_api_plans_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plans/{plan_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get details of a generated plan by ID
+         * @description Retrieve full plan with blocks, validation, and metrics.
+         */
+        get: operations["get_plan_api_plans__plan_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all generated plans
+         * @description Return summaries of all generated maintenance plans.
+         */
+        get: operations["list_plans_api_plans_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/seed": {
         parameters: {
             query?: never;
@@ -472,6 +532,28 @@ export interface components {
              */
             candidates: components["schemas"]["BundleCandidateSchema"][];
         };
+        /**
+         * ComparisonMetricsResponse
+         * @description Comparison benchmarks against the siloed departmental baseline.
+         */
+        ComparisonMetricsResponse: {
+            /** Baseline Blocks */
+            baseline_blocks: number;
+            /** Optimized Blocks */
+            optimized_blocks: number;
+            /** Block Reduction Count */
+            block_reduction_count: number;
+            /** Block Reduction Pct */
+            block_reduction_pct: number;
+            /** Baseline Disruption Min */
+            baseline_disruption_min: number;
+            /** Optimized Disruption Min */
+            optimized_disruption_min: number;
+            /** Disruption Savings Min */
+            disruption_savings_min: number;
+            /** Disruption Savings Pct */
+            disruption_savings_pct: number;
+        };
         /** CorridorDetailResponse */
         CorridorDetailResponse: {
             /**
@@ -589,6 +671,186 @@ export interface components {
             requires_track_block: boolean;
             /** Reasons */
             reasons: string[];
+        };
+        /**
+         * PlanGenerateRequest
+         * @description Request payload for generating an optimized maintenance schedule.
+         */
+        PlanGenerateRequest: {
+            /**
+             * Name
+             * @description Human-readable plan name
+             * @default Optimized Maintenance Plan
+             */
+            name: string | null;
+            /**
+             * Corridor Id
+             * @description Optional corridor filter
+             */
+            corridor_id?: string | null;
+            /**
+             * Time Limit Seconds
+             * @description CP-SAT solver timeout limit in seconds
+             * @default 30
+             */
+            time_limit_seconds: number;
+            /**
+             * Weight Num Blocks
+             * @description Objective weight penalizing block openings
+             * @default 1000
+             */
+            weight_num_blocks: number;
+            /**
+             * Weight Disruption Minutes
+             * @description Objective weight penalizing corridor disruption duration
+             * @default 5
+             */
+            weight_disruption_minutes: number;
+            /**
+             * Weight Priority Lateness
+             * @description Objective weight scheduling high-priority tasks earlier
+             * @default 1
+             */
+            weight_priority_lateness: number;
+            /**
+             * Allow Adjacent Sections
+             * @description Allow bundling across adjacent physical sections
+             * @default false
+             */
+            allow_adjacent_sections: boolean;
+        };
+        /**
+         * PlanListResponse
+         * @description List of generated maintenance plans.
+         */
+        PlanListResponse: {
+            /** Total Plans */
+            total_plans: number;
+            /** Plans */
+            plans: components["schemas"]["PlanSummaryResponse"][];
+        };
+        /**
+         * PlanMetricsResponse
+         * @description Core optimization schedule metrics.
+         */
+        PlanMetricsResponse: {
+            /** Total Blocks */
+            total_blocks: number;
+            /** Total Disruption Minutes */
+            total_disruption_minutes: number;
+            /** Cross Departmental Blocks */
+            cross_departmental_blocks: number;
+            /** Tasks Scheduled */
+            tasks_scheduled: number;
+            /** Delayed Tasks */
+            delayed_tasks: number;
+            /** Solve Time Seconds */
+            solve_time_seconds: number;
+            /** Status */
+            status: string;
+            /** Objective Value */
+            objective_value?: number | null;
+        };
+        /**
+         * PlanResponse
+         * @description Full maintenance schedule plan response with blocks, validation, and benchmarks.
+         */
+        PlanResponse: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Status */
+            status: string;
+            /** Created At */
+            created_at: string;
+            /** Scenario Params */
+            scenario_params?: {
+                [key: string]: unknown;
+            } | null;
+            metrics: components["schemas"]["PlanMetricsResponse"];
+            comparison?: components["schemas"]["ComparisonMetricsResponse"] | null;
+            validation: components["schemas"]["ValidationSummaryResponse"];
+            /** Planned Blocks */
+            planned_blocks: components["schemas"]["PlannedBlockResponse"][];
+        };
+        /**
+         * PlanSummaryResponse
+         * @description Brief summary of a generated plan.
+         */
+        PlanSummaryResponse: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Status */
+            status: string;
+            /** Created At */
+            created_at: string;
+            /** Total Blocks */
+            total_blocks: number;
+            /** Total Disruption Minutes */
+            total_disruption_minutes: number;
+            /** Tasks Scheduled */
+            tasks_scheduled: number;
+            /** Is Valid */
+            is_valid: boolean;
+        };
+        /**
+         * PlannedBlockResponse
+         * @description Allocated maintenance block bundling one or more compatible tasks.
+         */
+        PlannedBlockResponse: {
+            /** Id */
+            id: string;
+            /** Section Id */
+            section_id: string;
+            /** Section Name */
+            section_name: string;
+            /** Start Min */
+            start_min: number;
+            /** End Min */
+            end_min: number;
+            /** Duration Min */
+            duration_min: number;
+            /** Task Ids */
+            task_ids: string[];
+            /** Departments */
+            departments: string[];
+            /** Is Cross Departmental */
+            is_cross_departmental: boolean;
+            /** Requires Power Off */
+            requires_power_off: boolean;
+            /** Requires Track Block */
+            requires_track_block: boolean;
+            /** Tasks */
+            tasks: components["schemas"]["PlannedTaskResponse"][];
+        };
+        /**
+         * PlannedTaskResponse
+         * @description Scheduled task details within a planned maintenance block.
+         */
+        PlannedTaskResponse: {
+            /** Task Id */
+            task_id: string;
+            /** Title */
+            title: string;
+            /** Department */
+            department: string;
+            /** Section Id */
+            section_id: string;
+            /** Start Min */
+            start_min: number;
+            /** Duration Min */
+            duration_min: number;
+            /** Finish Min */
+            finish_min: number;
+            /** Is Delayed */
+            is_delayed: boolean;
+            /** Delay Minutes */
+            delay_minutes: number;
+            /** Priority Score */
+            priority_score: number;
         };
         /**
          * PriorityItemResponse
@@ -1100,6 +1362,20 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /**
+         * ValidationSummaryResponse
+         * @description Independent validator results verifying all hard railway constraints.
+         */
+        ValidationSummaryResponse: {
+            /** Is Valid */
+            is_valid: boolean;
+            /** Total Violations */
+            total_violations: number;
+            /** Violations */
+            violations: string[];
+            /** Checks Passed */
+            checks_passed: string[];
         };
     };
     responses: never;
@@ -1628,6 +1904,90 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_plan_api_plans_generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanGenerateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_plan_api_plans__plan_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_plans_api_plans_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanListResponse"];
                 };
             };
         };

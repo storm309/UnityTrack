@@ -4,6 +4,7 @@ Independent optimization package with NO dependencies on FastAPI or the database
 All data structures are pure Python / Pydantic models.
 """
 
+from app.optimizer.baseline import BaselinePlanResult, schedule_siloed_baseline
 from app.optimizer.bundling import (
     CONFLICT_CORRIDOR_MISMATCH,
     CONFLICT_CREW_CAPACITY_EXCEEDED,
@@ -33,6 +34,17 @@ from app.optimizer.priority import (
     compute_overdue_ratio,
     determine_priority_band,
     rank_tasks_by_priority,
+)
+from app.optimizer.scheduler import (
+    OptimizerPlanResult,
+    SchedulerConfig,
+    solve_maintenance_schedule,
+)
+from app.optimizer.validator import (
+    ScheduledBlock,
+    ScheduledTaskAssignment,
+    ValidationResult,
+    validate_schedule,
 )
 
 __all__ = [
@@ -64,4 +76,16 @@ __all__ = [
     "check_pairwise_compatibility",
     "compute_bundle_metrics",
     "find_candidate_bundles",
+    # Scheduler engine
+    "SchedulerConfig",
+    "OptimizerPlanResult",
+    "solve_maintenance_schedule",
+    # Validator engine
+    "ScheduledBlock",
+    "ScheduledTaskAssignment",
+    "ValidationResult",
+    "validate_schedule",
+    # Baseline scheduler
+    "BaselinePlanResult",
+    "schedule_siloed_baseline",
 ]

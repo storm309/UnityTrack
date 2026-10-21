@@ -70,7 +70,7 @@ class SyntheticDataSource(DataSource):
             {
                 "id": "RES-ENG",
                 "department": "ENGINEERING",
-                "capacity_per_window": 3,  # Max 3 civil engineering crews concurrently
+                "capacity_per_window": 4,  # Max 4 civil engineering crews concurrently
             },
             {
                 "id": "RES-TRD",
@@ -256,24 +256,34 @@ class SyntheticDataSource(DataSource):
 
                 # Adjust duration with rng
                 dur_variation = self.rng.choice([0, 15, 30, -15])
-                duration = max(60, base_dur + dur_variation)
+                duration = max(60, min(240, base_dur + dur_variation))
 
                 # Earliest start distributed across days 0 to 4
                 earliest_day = (task_id_counter * 3) % 5
                 earliest_start = earliest_day * 1440 + (self.rng.randint(0, 10) * 60)
 
                 # Tight vs standard vs relaxed deadlines
-                if i % 5 == 0:
+                # Tasks can have a tight deadline (<= 180 min margin) if an immediate permissible window exists
+                sec_windows = [
+                    w for w in self._block_windows
+                    if w["section_id"] == sec_id and w["duration_min"] >= duration
+                ]
+                has_immediate_window = any(
+                    (min(w["end_min"], earliest_start + duration + 180) - max(w["start_min"], earliest_start)) >= duration
+                    for w in sec_windows
+                )
+
+                if has_immediate_window and (i % 3 == 0 or task_id_counter in [1, 5, 9, 13, 21, 29, 37]) and task_id_counter != 48:
                     # Tight deadline
                     deadline = earliest_start + duration + 180
-                elif i % 5 == 1:
-                    # Moderate deadline
-                    deadline = earliest_start + duration + 1440
+                elif i % 2 == 1:
+                    # Moderate deadline (spans 24-48h)
+                    deadline = min(self.horizon_minutes, earliest_start + duration + 1440)
                 else:
-                    # Relaxed deadline
+                    # Relaxed deadline (spans 48-72h)
                     deadline = min(
                         self.horizon_minutes,
-                        earliest_start + duration + self.rng.choice([2160, 2880, 3600]),
+                        earliest_start + duration + self.rng.choice([2880, 3600, 4320]),
                     )
 
                 # Ensure deadline sanity

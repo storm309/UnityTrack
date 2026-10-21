@@ -104,7 +104,7 @@ def get_candidate_bundles(
         r.department: r.capacity_per_window for r in resources
     }
     if not crew_capacities:
-        crew_capacities = {"ENGINEERING": 3, "TRACTION": 2, "SNT": 3}
+        crew_capacities = {"ENGINEERING": 4, "TRACTION": 2, "SNT": 3}
 
     # 3. Fetch Tasks
     query = db.query(Task).filter(Task.status == "PENDING")
@@ -243,7 +243,7 @@ def check_tasks_compatibility(
     resources = db.query(Resource).all()
     crew_capacities = {r.department: r.capacity_per_window for r in resources}
     if not crew_capacities:
-        crew_capacities = {"ENGINEERING": 3, "TRACTION": 2, "SNT": 3}
+        crew_capacities = {"ENGINEERING": 4, "TRACTION": 2, "SNT": 3}
 
     sec_a = section_map.get(task_a.section_id)
     sec_b = section_map.get(task_b.section_id)

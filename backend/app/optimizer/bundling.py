@@ -67,7 +67,7 @@ class BundlingConfig:
     max_bundle_size: int = 3
     default_crew_capacities: Dict[str, int] = field(
         default_factory=lambda: {
-            "ENGINEERING": 3,
+            "ENGINEERING": 4,
             "TRACTION": 2,
             "SNT": 3,
         }
