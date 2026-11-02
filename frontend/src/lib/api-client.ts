@@ -23,6 +23,18 @@ export type PlanListResponse = components["schemas"]["PlanListResponse"];
 export type PlanGenerateRequest = components["schemas"]["PlanGenerateRequest"];
 export type PlannedBlockResponse = components["schemas"]["PlannedBlockResponse"];
 export type ComparisonMetricsResponse = components["schemas"]["ComparisonMetricsResponse"];
+export type ScenarioRunRequest = components["schemas"]["ScenarioRunRequest"];
+export type ScenarioDetailResponse = components["schemas"]["ScenarioDetailResponse"];
+export type ScenarioCompareRequest = components["schemas"]["ScenarioCompareRequest"];
+export type ScenarioComparisonResponse = components["schemas"]["ScenarioComparisonResponse"];
+export type ScenarioSummaryResponse = components["schemas"]["ScenarioSummaryResponse"];
+export type ScenarioParameters = components["schemas"]["ScenarioParameters"];
+export type PlanExplanationsResponse = components["schemas"]["PlanExplanationsResponse"];
+export type PlanRecommendationExplanation = components["schemas"]["PlanRecommendationExplanation"];
+export type BundleExplanation = components["schemas"]["BundleExplanation"];
+export type PriorityExplanation = components["schemas"]["PriorityExplanation"];
+export type DelayExplanation = components["schemas"]["DelayExplanation"];
+export type FactorExplanation = components["schemas"]["FactorExplanation"];
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -224,8 +236,44 @@ export async function getPlan(id: string): Promise<PlanResponse> {
   return request<PlanResponse>(`/api/plans/${id}`);
 }
 
+export async function getPlanExplanations(
+  id: string
+): Promise<PlanExplanationsResponse> {
+  return request<PlanExplanationsResponse>(`/api/plans/${id}/explanations`);
+}
+
 export async function getPlans(): Promise<PlanListResponse> {
   return request<PlanListResponse>("/api/plans");
 }
 
+export async function runScenario(
+  payload: ScenarioRunRequest
+): Promise<ScenarioDetailResponse> {
+  return request<ScenarioDetailResponse>("/api/scenarios/run", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
 
+export async function compareScenarios(
+  payload: ScenarioCompareRequest
+): Promise<ScenarioComparisonResponse> {
+  return request<ScenarioComparisonResponse>("/api/scenarios/compare", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getScenarios(): Promise<ScenarioSummaryResponse[]> {
+  return request<ScenarioSummaryResponse[]>("/api/scenarios");
+}
+
+export async function getScenario(id: string): Promise<ScenarioDetailResponse> {
+  return request<ScenarioDetailResponse>(`/api/scenarios/${id}`);
+}
+
+export async function deleteScenario(id: string): Promise<void> {
+  await request<void>(`/api/scenarios/${id}`, {
+    method: "DELETE",
+  });
+}

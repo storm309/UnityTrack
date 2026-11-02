@@ -11,6 +11,7 @@ from app.api.health import router as health_router
 from app.api.plans import router as plans_router
 from app.api.priority import router as priority_router
 from app.api.resources import router as resources_router
+from app.api.scenarios import router as scenarios_router
 from app.api.sections import router as sections_router
 from app.api.seed import router as seed_router
 from app.api.tasks import router as tasks_router
@@ -49,6 +50,7 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,
+        allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -65,6 +67,7 @@ def create_app() -> FastAPI:
     app.include_router(priority_router)
     app.include_router(bundles_router)
     app.include_router(plans_router)
+    app.include_router(scenarios_router)
     app.include_router(seed_router)
 
     return app

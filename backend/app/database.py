@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Generator
 
 from sqlalchemy import create_engine
@@ -7,13 +8,18 @@ from app.config import get_settings
 
 settings = get_settings()
 
+db_url = settings.DATABASE_URL
+if db_url == "sqlite:///./unitytrack.db":
+    root_db = Path(__file__).resolve().parents[2] / "unitytrack.db"
+    db_url = f"sqlite:///{root_db.as_posix()}"
+
 # Configure engine with SQLite compatibility if using SQLite
 connect_args = {}
-if settings.DATABASE_URL.startswith("sqlite"):
+if db_url.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
 engine = create_engine(
-    settings.DATABASE_URL,
+    db_url,
     connect_args=connect_args,
     pool_pre_ping=True,
 )

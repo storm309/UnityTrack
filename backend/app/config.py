@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     SOLVER_WORKERS: int = 4
     SOLVER_RANDOM_SEED: int = 42
 
+    # Explanation engine settings
+    ENABLE_LLM_POLISHING: bool = False
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:

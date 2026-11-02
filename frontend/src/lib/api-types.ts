@@ -346,6 +346,112 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plans/{plan_id}/explanations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Generate explainable decision-support justifications for a maintenance plan
+         * @description Generate plain-language explanations with mathematical guarantees.
+         *
+         *     Every number traces directly back to solver and baseline output (zero LLM hallucinations).
+         */
+        get: operations["get_plan_explanations_api_plans__plan_id__explanations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scenarios/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run a what-if scenario on top of base data without mutating it
+         * @description Execute what-if scenario with overlays (tasks, closures, capacity, deadlines, train slots).
+         */
+        post: operations["run_scenario_api_scenarios_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scenarios/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Compare 2 to 4 what-if scenarios side-by-side with objective ranking
+         * @description Evaluate 2-4 scenarios side-by-side, score them, and designate the best recommendation.
+         */
+        post: operations["compare_scenarios_api_scenarios_compare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scenarios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all persisted what-if scenarios
+         * @description Retrieve all previously executed and saved scenarios.
+         */
+        get: operations["list_scenarios_api_scenarios_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scenarios/{scenario_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve details and metrics of a specific what-if scenario
+         * @description Get full details of a saved scenario by ID.
+         */
+        get: operations["get_scenario_api_scenarios__scenario_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a saved what-if scenario
+         * @description Delete a saved scenario and any associated plan.
+         */
+        delete: operations["delete_scenario_api_scenarios__scenario_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/seed": {
         parameters: {
             query?: never;
@@ -507,6 +613,46 @@ export interface components {
             tasks_summary: components["schemas"]["TaskSummarySchema"][];
         };
         /**
+         * BundleExplanation
+         * @description Justification for combining multiple tasks into a shared maintenance block.
+         */
+        BundleExplanation: {
+            /** Block Id */
+            block_id: string;
+            /** Section Id */
+            section_id: string;
+            /** Section Name */
+            section_name: string;
+            /** Start Min */
+            start_min: number;
+            /** End Min */
+            end_min: number;
+            /** Duration Min */
+            duration_min: number;
+            /** Time Window Str */
+            time_window_str: string;
+            /** Departments */
+            departments: string[];
+            /** Is Cross Departmental */
+            is_cross_departmental: boolean;
+            /** Task Ids */
+            task_ids: string[];
+            /** Task Count */
+            task_count: number;
+            /** Sum Individual Durations */
+            sum_individual_durations: number;
+            /** Disruption Savings Min */
+            disruption_savings_min: number;
+            /** Power Off Required */
+            power_off_required: boolean;
+            /** Track Block Required */
+            track_block_required: boolean;
+            /** Justification */
+            justification: string;
+            /** Safety Compatibility Notes */
+            safety_compatibility_notes: string;
+        };
+        /**
          * CandidateBundlesListResponse
          * @description Response containing all discovered candidate bundles matching query filters.
          */
@@ -586,6 +732,136 @@ export interface components {
             name: string;
         };
         /**
+         * DelayExplanation
+         * @description Root-cause explanation for why a task could not be scheduled before its deadline.
+         */
+        DelayExplanation: {
+            /** Task Id */
+            task_id: string;
+            /** Title */
+            title: string;
+            /** Department */
+            department: string;
+            /** Section Id */
+            section_id: string;
+            /** Deadline */
+            deadline: number;
+            /** Scheduled Finish */
+            scheduled_finish: number;
+            /** Delay Minutes */
+            delay_minutes: number;
+            /** Binding Constraint */
+            binding_constraint: string;
+            /** Root Cause Analysis */
+            root_cause_analysis: string;
+        };
+        /**
+         * DelayedTaskSummary
+         * @description Details of a maintenance task that could not be completed prior to its deadline.
+         */
+        DelayedTaskSummary: {
+            /** Task Id */
+            task_id: string;
+            /** Department */
+            department: string;
+            /** Title */
+            title: string;
+            /** Priority Score */
+            priority_score: number;
+            /** Deadline */
+            deadline: number;
+            /** Finish Min */
+            finish_min: number;
+            /** Delay Minutes */
+            delay_minutes: number;
+            /** Is High Priority */
+            is_high_priority: boolean;
+        };
+        /**
+         * EmergencyTaskInput
+         * @description Parameter schema for introducing an emergency or unscheduled maintenance task.
+         */
+        EmergencyTaskInput: {
+            /**
+             * Id
+             * @description Optional custom ID. Auto-generated if omitted.
+             */
+            id?: string | null;
+            /**
+             * Title
+             * @description Descriptive task title, e.g., 'Emergency Broken Rail Replacement'
+             */
+            title: string;
+            /**
+             * Department
+             * @description ENGINEERING | TRACTION | SNT
+             */
+            department: string;
+            /**
+             * Section Id
+             * @description Section where the emergency occurred, e.g., 'SEC-02'
+             */
+            section_id: string;
+            /**
+             * Asset Type
+             * @description Asset type (e.g., Track, OHE, Signal)
+             * @default General
+             */
+            asset_type: string;
+            /**
+             * Duration Min
+             * @description Task duration in minutes
+             */
+            duration_min: number;
+            /**
+             * Earliest Start
+             * @description Earliest permissible start minute
+             * @default 0
+             */
+            earliest_start: number;
+            /**
+             * Deadline
+             * @description Hard deadline in minutes from timeline start
+             */
+            deadline: number;
+            /**
+             * Crew Needed
+             * @description Number of crews required
+             * @default 1
+             */
+            crew_needed: number;
+            /**
+             * Requires Power Off
+             * @description Whether traction power shutdown is required
+             * @default false
+             */
+            requires_power_off: boolean;
+            /**
+             * Requires Track Block
+             * @description Whether absolute track block is required
+             * @default true
+             */
+            requires_track_block: boolean;
+            /**
+             * Criticality
+             * @description Criticality rating (default 5 for emergencies)
+             * @default 5
+             */
+            criticality: number;
+            /**
+             * Defect Severity
+             * @description Defect severity (default 5 for emergencies)
+             * @default 5
+             */
+            defect_severity: number;
+            /**
+             * Traffic Impact
+             * @description Traffic impact score
+             * @default 0.8
+             */
+            traffic_impact: number;
+        };
+        /**
          * FactorContributionsSchema
          * @description Points contribution of each factor to the total 0-100 score.
          */
@@ -610,6 +886,47 @@ export interface components {
              * @description Traffic impact point contribution
              */
             traffic_impact: number;
+        };
+        /**
+         * FactorExplanation
+         * @description Detailed attribution for a single priority scoring factor.
+         */
+        FactorExplanation: {
+            /**
+             * Factor Name
+             * @description Factor identifier: criticality | severity | overdue | traffic
+             */
+            factor_name: string;
+            /**
+             * Display Name
+             * @description Human-readable factor title
+             */
+            display_name: string;
+            /**
+             * Weight Pct
+             * @description Configured weight percentage (e.g., 35.0%)
+             */
+            weight_pct: number;
+            /**
+             * Raw Value
+             * @description Raw domain input value
+             */
+            raw_value: number;
+            /**
+             * Normalized Value
+             * @description Normalized factor value between 0.0 and 1.0
+             */
+            normalized_value: number;
+            /**
+             * Points Contributed
+             * @description Absolute points contributed to priority score (0-100)
+             */
+            points_contributed: number;
+            /**
+             * Explanation
+             * @description Plain-language description of factor impact
+             */
+            explanation: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -671,6 +988,34 @@ export interface components {
             requires_track_block: boolean;
             /** Reasons */
             reasons: string[];
+        };
+        /**
+         * PlanExplanationsResponse
+         * @description Complete explainability payload for a generated maintenance schedule plan.
+         */
+        PlanExplanationsResponse: {
+            /** Plan Id */
+            plan_id: string;
+            /** Plan Name */
+            plan_name: string;
+            /** Created At */
+            created_at: string;
+            /**
+             * Is Llm Polished
+             * @default false
+             */
+            is_llm_polished: boolean;
+            recommendation: components["schemas"]["PlanRecommendationExplanation"];
+            /** Bundle Explanations */
+            bundle_explanations: components["schemas"]["BundleExplanation"][];
+            /** Priority Explanations */
+            priority_explanations: components["schemas"]["PriorityExplanation"][];
+            /** Delay Explanations */
+            delay_explanations: components["schemas"]["DelayExplanation"][];
+            /** Numerical Facts */
+            numerical_facts: {
+                [key: string]: unknown;
+            };
         };
         /**
          * PlanGenerateRequest
@@ -750,6 +1095,40 @@ export interface components {
             status: string;
             /** Objective Value */
             objective_value?: number | null;
+        };
+        /**
+         * PlanRecommendationExplanation
+         * @description Comprehensive justification of why the optimized plan is superior to siloed alternatives.
+         */
+        PlanRecommendationExplanation: {
+            /** Headline */
+            headline: string;
+            /** Summary */
+            summary: string;
+            /** Baseline Blocks */
+            baseline_blocks: number;
+            /** Optimized Blocks */
+            optimized_blocks: number;
+            /** Blocks Saved */
+            blocks_saved: number;
+            /** Block Reduction Pct */
+            block_reduction_pct: number;
+            /** Baseline Disruption Min */
+            baseline_disruption_min: number;
+            /** Optimized Disruption Min */
+            optimized_disruption_min: number;
+            /** Disruption Savings Min */
+            disruption_savings_min: number;
+            /** Disruption Savings Pct */
+            disruption_savings_pct: number;
+            /** Cross Departmental Blocks */
+            cross_departmental_blocks: number;
+            /** Delayed Tasks Count */
+            delayed_tasks_count: number;
+            /** Key Tradeoffs */
+            key_tradeoffs: string[];
+            /** Detailed Bullets */
+            detailed_bullets: string[];
         };
         /**
          * PlanResponse
@@ -851,6 +1230,34 @@ export interface components {
             delay_minutes: number;
             /** Priority Score */
             priority_score: number;
+        };
+        /**
+         * PriorityExplanation
+         * @description Explainable justification for a maintenance task's priority ranking and band.
+         */
+        PriorityExplanation: {
+            /** Task Id */
+            task_id: string;
+            /** Title */
+            title: string;
+            /** Department */
+            department: string;
+            /** Priority Score */
+            priority_score: number;
+            /** Priority Band */
+            priority_band: string;
+            /** Criticality */
+            criticality: number;
+            /** Defect Severity */
+            defect_severity: number;
+            /** Due Date */
+            due_date: string;
+            /** Traffic Impact */
+            traffic_impact: number;
+            /** Top Contributing Factors */
+            top_contributing_factors: components["schemas"]["FactorExplanation"][];
+            /** Summary */
+            summary: string;
         };
         /**
          * PriorityItemResponse
@@ -982,6 +1389,271 @@ export interface components {
              */
             capacity_per_window: number;
         };
+        /**
+         * ScenarioCompareItem
+         * @description Scenario specification inside a multi-scenario comparison request.
+         */
+        ScenarioCompareItem: {
+            /**
+             * Name
+             * @description Label for this scenario candidate
+             */
+            name: string;
+            /**
+             * Scenario Id
+             * @description ID of existing saved scenario, if reusing
+             */
+            scenario_id?: string | null;
+            /** @description Overlay parameters (required if scenario_id is not specified) */
+            params?: components["schemas"]["ScenarioParameters"] | null;
+        };
+        /**
+         * ScenarioCompareRequest
+         * @description Request payload to compare 2 to 4 what-if scenarios side-by-side.
+         */
+        ScenarioCompareRequest: {
+            /**
+             * Scenarios
+             * @description List of 2 to 4 scenario candidates to evaluate
+             */
+            scenarios: components["schemas"]["ScenarioCompareItem"][];
+            /**
+             * Include Baseline
+             * @description Whether to include unbundled siloed baseline as a reference point
+             * @default true
+             */
+            include_baseline: boolean;
+            /**
+             * Time Limit Seconds
+             * @default 15
+             */
+            time_limit_seconds: number;
+        };
+        /**
+         * ScenarioComparisonResponse
+         * @description Complete response returned by the multi-scenario comparison engine.
+         */
+        ScenarioComparisonResponse: {
+            /** Scenarios Evaluated */
+            scenarios_evaluated: number;
+            /**
+             * Ranking Rule
+             * @description Explicit rule definition: Penalizes infeasibility (10000), high-priority delays (5000), total delays (1000), blocks (100), and disruption minutes (1).
+             */
+            ranking_rule: string;
+            /** Best Scenario Name */
+            best_scenario_name: string;
+            /** Best Scenario Reason */
+            best_scenario_reason: string;
+            /** Comparison Table */
+            comparison_table: components["schemas"]["ScenarioComparisonResultItem"][];
+            /** Delta Vs Baseline */
+            delta_vs_baseline?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * ScenarioComparisonResultItem
+         * @description Evaluated metrics for a single scenario in a comparative analysis.
+         */
+        ScenarioComparisonResultItem: {
+            /** Name */
+            name: string;
+            /** Scenario Id */
+            scenario_id?: string | null;
+            /** Status */
+            status: string;
+            /** Total Blocks */
+            total_blocks: number;
+            /** Total Disruption Minutes */
+            total_disruption_minutes: number;
+            /** Cross Departmental Blocks */
+            cross_departmental_blocks: number;
+            /** Delayed Tasks */
+            delayed_tasks: number;
+            /** High Priority Delays */
+            high_priority_delays: number;
+            /** Total Delay Minutes */
+            total_delay_minutes: number;
+            /** Solve Time Seconds */
+            solve_time_seconds: number;
+            /** Composite Penalty Score */
+            composite_penalty_score: number;
+            /** Rank */
+            rank: number;
+            /** Is Best */
+            is_best: boolean;
+            /** Evaluation Notes */
+            evaluation_notes: string;
+        };
+        /**
+         * ScenarioDetailResponse
+         * @description Full detail of a scenario, including metrics, blocks, and task assignments.
+         */
+        ScenarioDetailResponse: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description?: string | null;
+            /** Plan Id */
+            plan_id?: string | null;
+            /** Created At */
+            created_at: string;
+            params: components["schemas"]["ScenarioParameters"];
+            metrics: components["schemas"]["ScenarioMetrics"];
+            /** Blocks Count */
+            blocks_count: number;
+            /** Infeasible Diagnostics */
+            infeasible_diagnostics?: string[] | null;
+        };
+        /**
+         * ScenarioMetrics
+         * @description Comprehensive performance metrics returned for a scenario execution.
+         */
+        ScenarioMetrics: {
+            /**
+             * Status
+             * @description OPTIMAL | FEASIBLE | INFEASIBLE | TIMEOUT
+             */
+            status: string;
+            /** Objective Value */
+            objective_value?: number | null;
+            /** Solve Time Seconds */
+            solve_time_seconds: number;
+            /** Total Blocks */
+            total_blocks: number;
+            /** Total Disruption Minutes */
+            total_disruption_minutes: number;
+            /** Cross Departmental Blocks */
+            cross_departmental_blocks: number;
+            /** Tasks Scheduled */
+            tasks_scheduled: number;
+            /** Total Tasks Count */
+            total_tasks_count: number;
+            /** Delayed Tasks */
+            delayed_tasks: number;
+            /** High Priority Delays */
+            high_priority_delays: number;
+            /** Total Delay Minutes */
+            total_delay_minutes: number;
+            /** Delayed Task Details */
+            delayed_task_details?: components["schemas"]["DelayedTaskSummary"][];
+            /**
+             * Composite Penalty Score
+             * @description Standardized multi-criteria evaluation penalty score
+             */
+            composite_penalty_score: number;
+        };
+        /**
+         * ScenarioParameters
+         * @description Overlay parameters defining a what-if scenario without mutating base data.
+         */
+        ScenarioParameters: {
+            /**
+             * Add Tasks
+             * @description Emergency tasks to inject
+             */
+            add_tasks?: components["schemas"]["EmergencyTaskInput"][];
+            /**
+             * Restrict Sections
+             * @description Section closure intervals
+             */
+            restrict_sections?: components["schemas"]["SectionRestrictionInput"][];
+            /**
+             * Deadline Overrides
+             * @description Task ID to new deadline in minutes
+             */
+            deadline_overrides?: {
+                [key: string]: number;
+            };
+            /**
+             * Capacity Overrides
+             * @description Department to crew capacity per window overrides
+             */
+            capacity_overrides?: {
+                [key: string]: number;
+            };
+            /** @description Optimizer objective weight adjustments */
+            weight_overrides?: components["schemas"]["ScenarioWeightOverrides"] | null;
+            /**
+             * Add Train Slots
+             * @description Additional train slots that consume timetable gaps
+             */
+            add_train_slots?: components["schemas"]["TrainSlotInput"][];
+            /**
+             * Remove Train Slot Ids
+             * @description Train slot IDs to cancel/remove, opening timetable gaps
+             */
+            remove_train_slot_ids?: string[];
+        };
+        /**
+         * ScenarioRunRequest
+         * @description Request payload to execute a what-if scenario.
+         */
+        ScenarioRunRequest: {
+            /**
+             * Name
+             * @description Scenario name
+             */
+            name: string;
+            /**
+             * Description
+             * @description Scenario description or notes
+             */
+            description?: string | null;
+            /** @description Overlay parameters */
+            params: components["schemas"]["ScenarioParameters"];
+            /**
+             * Time Limit Seconds
+             * @description CP-SAT time limit
+             * @default 15
+             */
+            time_limit_seconds: number;
+            /**
+             * Save Scenario
+             * @description Whether to persist scenario in database
+             * @default true
+             */
+            save_scenario: boolean;
+        };
+        /**
+         * ScenarioSummaryResponse
+         * @description Summary item for scenario listing.
+         */
+        ScenarioSummaryResponse: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Created At */
+            created_at: string;
+            /** Status */
+            status: string;
+            /** Total Blocks */
+            total_blocks: number;
+            /** Total Disruption Minutes */
+            total_disruption_minutes: number;
+            /** Delayed Tasks */
+            delayed_tasks: number;
+            /** High Priority Delays */
+            high_priority_delays: number;
+            /** Composite Penalty Score */
+            composite_penalty_score: number;
+        };
+        /**
+         * ScenarioWeightOverrides
+         * @description Overrides for CP-SAT objective function weights.
+         */
+        ScenarioWeightOverrides: {
+            /** Weight Num Blocks */
+            weight_num_blocks?: number | null;
+            /** Weight Disruption Minutes */
+            weight_disruption_minutes?: number | null;
+            /** Weight Priority Lateness */
+            weight_priority_lateness?: number | null;
+        };
         /** SectionBase */
         SectionBase: {
             /**
@@ -1047,6 +1719,39 @@ export interface components {
              * @description Sequential order of the section on the corridor
              */
             order_index: number;
+        };
+        /**
+         * SectionRestrictionInput
+         * @description Parameter schema for closing or restricting track section during a time window.
+         */
+        SectionRestrictionInput: {
+            /**
+             * Section Id
+             * @description Target section ID, e.g., 'SEC-01'
+             */
+            section_id: string;
+            /**
+             * Start Min
+             * @description Start minute of restriction
+             */
+            start_min: number;
+            /**
+             * End Min
+             * @description End minute of restriction
+             */
+            end_min: number;
+            /**
+             * Restriction Type
+             * @description CLOSED (no maintenance windows allowed) | SPEED_RESTRICTED
+             * @default CLOSED
+             */
+            restriction_type: string;
+            /**
+             * Reason
+             * @description Operational justification
+             * @default Emergency track maintenance / Weather alert
+             */
+            reason: string | null;
         };
         /** SeedRequest */
         SeedRequest: {
@@ -1311,6 +2016,43 @@ export interface components {
             requires_track_block?: boolean | null;
             /** Status */
             status?: string | null;
+        };
+        /**
+         * TrainSlotInput
+         * @description Parameter schema for injecting a special or unscheduled train slot.
+         */
+        TrainSlotInput: {
+            /**
+             * Id
+             * @description Train slot ID. Auto-generated if omitted.
+             */
+            id?: string | null;
+            /**
+             * Section Id
+             * @description Track section traversed by train
+             */
+            section_id: string;
+            /**
+             * Train No
+             * @description Train number, e.g., 'SPL-09901'
+             */
+            train_no: string;
+            /**
+             * Start Min
+             * @description Arrival / entry minute into section
+             */
+            start_min: number;
+            /**
+             * End Min
+             * @description Departure / exit minute from section
+             */
+            end_min: number;
+            /**
+             * Priority
+             * @description Train priority (1 highest)
+             * @default 1
+             */
+            priority: number;
         };
         /** TrainSlotResponse */
         TrainSlotResponse: {
@@ -1988,6 +2730,183 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlanListResponse"];
+                };
+            };
+        };
+    };
+    get_plan_explanations_api_plans__plan_id__explanations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanExplanationsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_scenario_api_scenarios_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScenarioRunRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScenarioDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_scenarios_api_scenarios_compare_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScenarioCompareRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScenarioComparisonResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_scenarios_api_scenarios_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScenarioSummaryResponse"][];
+                };
+            };
+        };
+    };
+    get_scenario_api_scenarios__scenario_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scenario_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScenarioDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_scenario_api_scenarios__scenario_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scenario_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

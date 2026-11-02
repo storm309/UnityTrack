@@ -11,6 +11,14 @@ UnityTrack scores task priority with an explainable model, bundles compatible mu
 
 ---
 
+## 👥 Group Project Plan & Remaining Tasks Guide
+
+> **Working on this project as a group?**  
+> Read **[PROJECT_PLAN.md](./PROJECT_PLAN.md)** for detailed task breakdown, architecture status, acceptance criteria, and instructions for team members to pick up remaining modules (Sections 6 through 10).  
+> For contributor setup and development guidelines, refer to **[CONTRIBUTING.md](./CONTRIBUTING.md)**.
+
+---
+
 ## Architecture Overview
 
 ```

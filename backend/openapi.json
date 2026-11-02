@@ -1123,6 +1123,236 @@
         }
       }
     },
+    "/api/plans/{plan_id}/explanations": {
+      "get": {
+        "tags": [
+          "plans"
+        ],
+        "summary": "Generate explainable decision-support justifications for a maintenance plan",
+        "description": "Generate plain-language explanations with mathematical guarantees.\n\nEvery number traces directly back to solver and baseline output (zero LLM hallucinations).",
+        "operationId": "get_plan_explanations_api_plans__plan_id__explanations_get",
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanExplanationsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenarios/run": {
+      "post": {
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "Run a what-if scenario on top of base data without mutating it",
+        "description": "Execute what-if scenario with overlays (tasks, closures, capacity, deadlines, train slots).",
+        "operationId": "run_scenario_api_scenarios_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenarios/compare": {
+      "post": {
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "Compare 2 to 4 what-if scenarios side-by-side with objective ranking",
+        "description": "Evaluate 2-4 scenarios side-by-side, score them, and designate the best recommendation.",
+        "operationId": "compare_scenarios_api_scenarios_compare_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioCompareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioComparisonResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenarios": {
+      "get": {
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "List all persisted what-if scenarios",
+        "description": "Retrieve all previously executed and saved scenarios.",
+        "operationId": "list_scenarios_api_scenarios_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScenarioSummaryResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Scenarios Api Scenarios Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenarios/{scenario_id}": {
+      "get": {
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "Retrieve details and metrics of a specific what-if scenario",
+        "description": "Get full details of a saved scenario by ID.",
+        "operationId": "get_scenario_api_scenarios__scenario_id__get",
+        "parameters": [
+          {
+            "name": "scenario_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scenario Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "Delete a saved what-if scenario",
+        "description": "Delete a saved scenario and any associated plan.",
+        "operationId": "delete_scenario_api_scenarios__scenario_id__delete",
+        "parameters": [
+          {
+            "name": "scenario_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scenario Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/seed": {
       "post": {
         "tags": [
@@ -1353,6 +1583,106 @@
         "title": "BundleCandidateSchema",
         "description": "Candidate bundle of mutually compatible tasks sharing a maintenance block."
       },
+      "BundleExplanation": {
+        "properties": {
+          "block_id": {
+            "type": "string",
+            "title": "Block Id"
+          },
+          "section_id": {
+            "type": "string",
+            "title": "Section Id"
+          },
+          "section_name": {
+            "type": "string",
+            "title": "Section Name"
+          },
+          "start_min": {
+            "type": "integer",
+            "title": "Start Min"
+          },
+          "end_min": {
+            "type": "integer",
+            "title": "End Min"
+          },
+          "duration_min": {
+            "type": "integer",
+            "title": "Duration Min"
+          },
+          "time_window_str": {
+            "type": "string",
+            "title": "Time Window Str"
+          },
+          "departments": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Departments"
+          },
+          "is_cross_departmental": {
+            "type": "boolean",
+            "title": "Is Cross Departmental"
+          },
+          "task_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Task Ids"
+          },
+          "task_count": {
+            "type": "integer",
+            "title": "Task Count"
+          },
+          "sum_individual_durations": {
+            "type": "integer",
+            "title": "Sum Individual Durations"
+          },
+          "disruption_savings_min": {
+            "type": "integer",
+            "title": "Disruption Savings Min"
+          },
+          "power_off_required": {
+            "type": "boolean",
+            "title": "Power Off Required"
+          },
+          "track_block_required": {
+            "type": "boolean",
+            "title": "Track Block Required"
+          },
+          "justification": {
+            "type": "string",
+            "title": "Justification"
+          },
+          "safety_compatibility_notes": {
+            "type": "string",
+            "title": "Safety Compatibility Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "block_id",
+          "section_id",
+          "section_name",
+          "start_min",
+          "end_min",
+          "duration_min",
+          "time_window_str",
+          "departments",
+          "is_cross_departmental",
+          "task_ids",
+          "task_count",
+          "sum_individual_durations",
+          "disruption_savings_min",
+          "power_off_required",
+          "track_block_required",
+          "justification",
+          "safety_compatibility_notes"
+        ],
+        "title": "BundleExplanation",
+        "description": "Justification for combining multiple tasks into a shared maintenance block."
+      },
       "CandidateBundlesListResponse": {
         "properties": {
           "total_candidates": {
@@ -1486,6 +1816,220 @@
         ],
         "title": "CorridorResponse"
       },
+      "DelayExplanation": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department"
+          },
+          "section_id": {
+            "type": "string",
+            "title": "Section Id"
+          },
+          "deadline": {
+            "type": "integer",
+            "title": "Deadline"
+          },
+          "scheduled_finish": {
+            "type": "integer",
+            "title": "Scheduled Finish"
+          },
+          "delay_minutes": {
+            "type": "integer",
+            "title": "Delay Minutes"
+          },
+          "binding_constraint": {
+            "type": "string",
+            "title": "Binding Constraint"
+          },
+          "root_cause_analysis": {
+            "type": "string",
+            "title": "Root Cause Analysis"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id",
+          "title",
+          "department",
+          "section_id",
+          "deadline",
+          "scheduled_finish",
+          "delay_minutes",
+          "binding_constraint",
+          "root_cause_analysis"
+        ],
+        "title": "DelayExplanation",
+        "description": "Root-cause explanation for why a task could not be scheduled before its deadline."
+      },
+      "DelayedTaskSummary": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "priority_score": {
+            "type": "number",
+            "title": "Priority Score"
+          },
+          "deadline": {
+            "type": "integer",
+            "title": "Deadline"
+          },
+          "finish_min": {
+            "type": "integer",
+            "title": "Finish Min"
+          },
+          "delay_minutes": {
+            "type": "integer",
+            "title": "Delay Minutes"
+          },
+          "is_high_priority": {
+            "type": "boolean",
+            "title": "Is High Priority"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id",
+          "department",
+          "title",
+          "priority_score",
+          "deadline",
+          "finish_min",
+          "delay_minutes",
+          "is_high_priority"
+        ],
+        "title": "DelayedTaskSummary",
+        "description": "Details of a maintenance task that could not be completed prior to its deadline."
+      },
+      "EmergencyTaskInput": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "Optional custom ID. Auto-generated if omitted."
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Descriptive task title, e.g., 'Emergency Broken Rail Replacement'"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department",
+            "description": "ENGINEERING | TRACTION | SNT"
+          },
+          "section_id": {
+            "type": "string",
+            "title": "Section Id",
+            "description": "Section where the emergency occurred, e.g., 'SEC-02'"
+          },
+          "asset_type": {
+            "type": "string",
+            "title": "Asset Type",
+            "description": "Asset type (e.g., Track, OHE, Signal)",
+            "default": "General"
+          },
+          "duration_min": {
+            "type": "integer",
+            "maximum": 480.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Duration Min",
+            "description": "Task duration in minutes"
+          },
+          "earliest_start": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Earliest Start",
+            "description": "Earliest permissible start minute",
+            "default": 0
+          },
+          "deadline": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Deadline",
+            "description": "Hard deadline in minutes from timeline start"
+          },
+          "crew_needed": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Crew Needed",
+            "description": "Number of crews required",
+            "default": 1
+          },
+          "requires_power_off": {
+            "type": "boolean",
+            "title": "Requires Power Off",
+            "description": "Whether traction power shutdown is required",
+            "default": false
+          },
+          "requires_track_block": {
+            "type": "boolean",
+            "title": "Requires Track Block",
+            "description": "Whether absolute track block is required",
+            "default": true
+          },
+          "criticality": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Criticality",
+            "description": "Criticality rating (default 5 for emergencies)",
+            "default": 5
+          },
+          "defect_severity": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Defect Severity",
+            "description": "Defect severity (default 5 for emergencies)",
+            "default": 5
+          },
+          "traffic_impact": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Traffic Impact",
+            "description": "Traffic impact score",
+            "default": 0.8
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "department",
+          "section_id",
+          "duration_min",
+          "deadline"
+        ],
+        "title": "EmergencyTaskInput",
+        "description": "Parameter schema for introducing an emergency or unscheduled maintenance task."
+      },
       "FactorContributionsSchema": {
         "properties": {
           "criticality": {
@@ -1518,6 +2062,57 @@
         ],
         "title": "FactorContributionsSchema",
         "description": "Points contribution of each factor to the total 0-100 score."
+      },
+      "FactorExplanation": {
+        "properties": {
+          "factor_name": {
+            "type": "string",
+            "title": "Factor Name",
+            "description": "Factor identifier: criticality | severity | overdue | traffic"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name",
+            "description": "Human-readable factor title"
+          },
+          "weight_pct": {
+            "type": "number",
+            "title": "Weight Pct",
+            "description": "Configured weight percentage (e.g., 35.0%)"
+          },
+          "raw_value": {
+            "type": "number",
+            "title": "Raw Value",
+            "description": "Raw domain input value"
+          },
+          "normalized_value": {
+            "type": "number",
+            "title": "Normalized Value",
+            "description": "Normalized factor value between 0.0 and 1.0"
+          },
+          "points_contributed": {
+            "type": "number",
+            "title": "Points Contributed",
+            "description": "Absolute points contributed to priority score (0-100)"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation",
+            "description": "Plain-language description of factor impact"
+          }
+        },
+        "type": "object",
+        "required": [
+          "factor_name",
+          "display_name",
+          "weight_pct",
+          "raw_value",
+          "normalized_value",
+          "points_contributed",
+          "explanation"
+        ],
+        "title": "FactorExplanation",
+        "description": "Detailed attribution for a single priority scoring factor."
       },
       "HTTPValidationError": {
         "properties": {
@@ -1643,6 +2238,69 @@
         ],
         "title": "PairwiseCompatibilityResponse",
         "description": "Detailed response for pairwise task compatibility evaluation."
+      },
+      "PlanExplanationsResponse": {
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "title": "Plan Id"
+          },
+          "plan_name": {
+            "type": "string",
+            "title": "Plan Name"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "is_llm_polished": {
+            "type": "boolean",
+            "title": "Is Llm Polished",
+            "default": false
+          },
+          "recommendation": {
+            "$ref": "#/components/schemas/PlanRecommendationExplanation"
+          },
+          "bundle_explanations": {
+            "items": {
+              "$ref": "#/components/schemas/BundleExplanation"
+            },
+            "type": "array",
+            "title": "Bundle Explanations"
+          },
+          "priority_explanations": {
+            "items": {
+              "$ref": "#/components/schemas/PriorityExplanation"
+            },
+            "type": "array",
+            "title": "Priority Explanations"
+          },
+          "delay_explanations": {
+            "items": {
+              "$ref": "#/components/schemas/DelayExplanation"
+            },
+            "type": "array",
+            "title": "Delay Explanations"
+          },
+          "numerical_facts": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Numerical Facts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan_id",
+          "plan_name",
+          "created_at",
+          "recommendation",
+          "bundle_explanations",
+          "priority_explanations",
+          "delay_explanations",
+          "numerical_facts"
+        ],
+        "title": "PlanExplanationsResponse",
+        "description": "Complete explainability payload for a generated maintenance schedule plan."
       },
       "PlanGenerateRequest": {
         "properties": {
@@ -1787,6 +2445,91 @@
         ],
         "title": "PlanMetricsResponse",
         "description": "Core optimization schedule metrics."
+      },
+      "PlanRecommendationExplanation": {
+        "properties": {
+          "headline": {
+            "type": "string",
+            "title": "Headline"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "baseline_blocks": {
+            "type": "integer",
+            "title": "Baseline Blocks"
+          },
+          "optimized_blocks": {
+            "type": "integer",
+            "title": "Optimized Blocks"
+          },
+          "blocks_saved": {
+            "type": "integer",
+            "title": "Blocks Saved"
+          },
+          "block_reduction_pct": {
+            "type": "number",
+            "title": "Block Reduction Pct"
+          },
+          "baseline_disruption_min": {
+            "type": "integer",
+            "title": "Baseline Disruption Min"
+          },
+          "optimized_disruption_min": {
+            "type": "integer",
+            "title": "Optimized Disruption Min"
+          },
+          "disruption_savings_min": {
+            "type": "integer",
+            "title": "Disruption Savings Min"
+          },
+          "disruption_savings_pct": {
+            "type": "number",
+            "title": "Disruption Savings Pct"
+          },
+          "cross_departmental_blocks": {
+            "type": "integer",
+            "title": "Cross Departmental Blocks"
+          },
+          "delayed_tasks_count": {
+            "type": "integer",
+            "title": "Delayed Tasks Count"
+          },
+          "key_tradeoffs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Key Tradeoffs"
+          },
+          "detailed_bullets": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Detailed Bullets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "headline",
+          "summary",
+          "baseline_blocks",
+          "optimized_blocks",
+          "blocks_saved",
+          "block_reduction_pct",
+          "baseline_disruption_min",
+          "optimized_disruption_min",
+          "disruption_savings_min",
+          "disruption_savings_pct",
+          "cross_departmental_blocks",
+          "delayed_tasks_count",
+          "key_tradeoffs",
+          "detailed_bullets"
+        ],
+        "title": "PlanRecommendationExplanation",
+        "description": "Comprehensive justification of why the optimized plan is superior to siloed alternatives."
       },
       "PlanResponse": {
         "properties": {
@@ -2041,6 +2784,73 @@
         "title": "PlannedTaskResponse",
         "description": "Scheduled task details within a planned maintenance block."
       },
+      "PriorityExplanation": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department"
+          },
+          "priority_score": {
+            "type": "number",
+            "title": "Priority Score"
+          },
+          "priority_band": {
+            "type": "string",
+            "title": "Priority Band"
+          },
+          "criticality": {
+            "type": "integer",
+            "title": "Criticality"
+          },
+          "defect_severity": {
+            "type": "integer",
+            "title": "Defect Severity"
+          },
+          "due_date": {
+            "type": "string",
+            "title": "Due Date"
+          },
+          "traffic_impact": {
+            "type": "number",
+            "title": "Traffic Impact"
+          },
+          "top_contributing_factors": {
+            "items": {
+              "$ref": "#/components/schemas/FactorExplanation"
+            },
+            "type": "array",
+            "title": "Top Contributing Factors"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id",
+          "title",
+          "department",
+          "priority_score",
+          "priority_band",
+          "criticality",
+          "defect_severity",
+          "due_date",
+          "traffic_impact",
+          "top_contributing_factors",
+          "summary"
+        ],
+        "title": "PriorityExplanation",
+        "description": "Explainable justification for a maintenance task's priority ranking and band."
+      },
       "PriorityItemResponse": {
         "properties": {
           "task_id": {
@@ -2216,6 +3026,580 @@
         ],
         "title": "ResourceResponse"
       },
+      "ScenarioCompareItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Label for this scenario candidate"
+          },
+          "scenario_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario Id",
+            "description": "ID of existing saved scenario, if reusing"
+          },
+          "params": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScenarioParameters"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Overlay parameters (required if scenario_id is not specified)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ScenarioCompareItem",
+        "description": "Scenario specification inside a multi-scenario comparison request."
+      },
+      "ScenarioCompareRequest": {
+        "properties": {
+          "scenarios": {
+            "items": {
+              "$ref": "#/components/schemas/ScenarioCompareItem"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 2,
+            "title": "Scenarios",
+            "description": "List of 2 to 4 scenario candidates to evaluate"
+          },
+          "include_baseline": {
+            "type": "boolean",
+            "title": "Include Baseline",
+            "description": "Whether to include unbundled siloed baseline as a reference point",
+            "default": true
+          },
+          "time_limit_seconds": {
+            "type": "number",
+            "maximum": 60.0,
+            "exclusiveMinimum": 1.0,
+            "title": "Time Limit Seconds",
+            "default": 15.0
+          }
+        },
+        "type": "object",
+        "required": [
+          "scenarios"
+        ],
+        "title": "ScenarioCompareRequest",
+        "description": "Request payload to compare 2 to 4 what-if scenarios side-by-side."
+      },
+      "ScenarioComparisonResponse": {
+        "properties": {
+          "scenarios_evaluated": {
+            "type": "integer",
+            "title": "Scenarios Evaluated"
+          },
+          "ranking_rule": {
+            "type": "string",
+            "title": "Ranking Rule",
+            "description": "Explicit rule definition: Penalizes infeasibility (10000), high-priority delays (5000), total delays (1000), blocks (100), and disruption minutes (1)."
+          },
+          "best_scenario_name": {
+            "type": "string",
+            "title": "Best Scenario Name"
+          },
+          "best_scenario_reason": {
+            "type": "string",
+            "title": "Best Scenario Reason"
+          },
+          "comparison_table": {
+            "items": {
+              "$ref": "#/components/schemas/ScenarioComparisonResultItem"
+            },
+            "type": "array",
+            "title": "Comparison Table"
+          },
+          "delta_vs_baseline": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delta Vs Baseline"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scenarios_evaluated",
+          "ranking_rule",
+          "best_scenario_name",
+          "best_scenario_reason",
+          "comparison_table"
+        ],
+        "title": "ScenarioComparisonResponse",
+        "description": "Complete response returned by the multi-scenario comparison engine."
+      },
+      "ScenarioComparisonResultItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "scenario_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "total_blocks": {
+            "type": "integer",
+            "title": "Total Blocks"
+          },
+          "total_disruption_minutes": {
+            "type": "integer",
+            "title": "Total Disruption Minutes"
+          },
+          "cross_departmental_blocks": {
+            "type": "integer",
+            "title": "Cross Departmental Blocks"
+          },
+          "delayed_tasks": {
+            "type": "integer",
+            "title": "Delayed Tasks"
+          },
+          "high_priority_delays": {
+            "type": "integer",
+            "title": "High Priority Delays"
+          },
+          "total_delay_minutes": {
+            "type": "integer",
+            "title": "Total Delay Minutes"
+          },
+          "solve_time_seconds": {
+            "type": "number",
+            "title": "Solve Time Seconds"
+          },
+          "composite_penalty_score": {
+            "type": "number",
+            "title": "Composite Penalty Score"
+          },
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "is_best": {
+            "type": "boolean",
+            "title": "Is Best"
+          },
+          "evaluation_notes": {
+            "type": "string",
+            "title": "Evaluation Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status",
+          "total_blocks",
+          "total_disruption_minutes",
+          "cross_departmental_blocks",
+          "delayed_tasks",
+          "high_priority_delays",
+          "total_delay_minutes",
+          "solve_time_seconds",
+          "composite_penalty_score",
+          "rank",
+          "is_best",
+          "evaluation_notes"
+        ],
+        "title": "ScenarioComparisonResultItem",
+        "description": "Evaluated metrics for a single scenario in a comparative analysis."
+      },
+      "ScenarioDetailResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "plan_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Id"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "params": {
+            "$ref": "#/components/schemas/ScenarioParameters"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/ScenarioMetrics"
+          },
+          "blocks_count": {
+            "type": "integer",
+            "title": "Blocks Count"
+          },
+          "infeasible_diagnostics": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Infeasible Diagnostics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "params",
+          "metrics",
+          "blocks_count"
+        ],
+        "title": "ScenarioDetailResponse",
+        "description": "Full detail of a scenario, including metrics, blocks, and task assignments."
+      },
+      "ScenarioMetrics": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "OPTIMAL | FEASIBLE | INFEASIBLE | TIMEOUT"
+          },
+          "objective_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective Value"
+          },
+          "solve_time_seconds": {
+            "type": "number",
+            "title": "Solve Time Seconds"
+          },
+          "total_blocks": {
+            "type": "integer",
+            "title": "Total Blocks"
+          },
+          "total_disruption_minutes": {
+            "type": "integer",
+            "title": "Total Disruption Minutes"
+          },
+          "cross_departmental_blocks": {
+            "type": "integer",
+            "title": "Cross Departmental Blocks"
+          },
+          "tasks_scheduled": {
+            "type": "integer",
+            "title": "Tasks Scheduled"
+          },
+          "total_tasks_count": {
+            "type": "integer",
+            "title": "Total Tasks Count"
+          },
+          "delayed_tasks": {
+            "type": "integer",
+            "title": "Delayed Tasks"
+          },
+          "high_priority_delays": {
+            "type": "integer",
+            "title": "High Priority Delays"
+          },
+          "total_delay_minutes": {
+            "type": "integer",
+            "title": "Total Delay Minutes"
+          },
+          "delayed_task_details": {
+            "items": {
+              "$ref": "#/components/schemas/DelayedTaskSummary"
+            },
+            "type": "array",
+            "title": "Delayed Task Details"
+          },
+          "composite_penalty_score": {
+            "type": "number",
+            "title": "Composite Penalty Score",
+            "description": "Standardized multi-criteria evaluation penalty score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "solve_time_seconds",
+          "total_blocks",
+          "total_disruption_minutes",
+          "cross_departmental_blocks",
+          "tasks_scheduled",
+          "total_tasks_count",
+          "delayed_tasks",
+          "high_priority_delays",
+          "total_delay_minutes",
+          "composite_penalty_score"
+        ],
+        "title": "ScenarioMetrics",
+        "description": "Comprehensive performance metrics returned for a scenario execution."
+      },
+      "ScenarioParameters": {
+        "properties": {
+          "add_tasks": {
+            "items": {
+              "$ref": "#/components/schemas/EmergencyTaskInput"
+            },
+            "type": "array",
+            "title": "Add Tasks",
+            "description": "Emergency tasks to inject"
+          },
+          "restrict_sections": {
+            "items": {
+              "$ref": "#/components/schemas/SectionRestrictionInput"
+            },
+            "type": "array",
+            "title": "Restrict Sections",
+            "description": "Section closure intervals"
+          },
+          "deadline_overrides": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Deadline Overrides",
+            "description": "Task ID to new deadline in minutes"
+          },
+          "capacity_overrides": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Capacity Overrides",
+            "description": "Department to crew capacity per window overrides"
+          },
+          "weight_overrides": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScenarioWeightOverrides"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optimizer objective weight adjustments"
+          },
+          "add_train_slots": {
+            "items": {
+              "$ref": "#/components/schemas/TrainSlotInput"
+            },
+            "type": "array",
+            "title": "Add Train Slots",
+            "description": "Additional train slots that consume timetable gaps"
+          },
+          "remove_train_slot_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Remove Train Slot Ids",
+            "description": "Train slot IDs to cancel/remove, opening timetable gaps"
+          }
+        },
+        "type": "object",
+        "title": "ScenarioParameters",
+        "description": "Overlay parameters defining a what-if scenario without mutating base data."
+      },
+      "ScenarioRunRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 2,
+            "title": "Name",
+            "description": "Scenario name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Scenario description or notes"
+          },
+          "params": {
+            "$ref": "#/components/schemas/ScenarioParameters",
+            "description": "Overlay parameters"
+          },
+          "time_limit_seconds": {
+            "type": "number",
+            "maximum": 60.0,
+            "exclusiveMinimum": 1.0,
+            "title": "Time Limit Seconds",
+            "description": "CP-SAT time limit",
+            "default": 15.0
+          },
+          "save_scenario": {
+            "type": "boolean",
+            "title": "Save Scenario",
+            "description": "Whether to persist scenario in database",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "params"
+        ],
+        "title": "ScenarioRunRequest",
+        "description": "Request payload to execute a what-if scenario."
+      },
+      "ScenarioSummaryResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "total_blocks": {
+            "type": "integer",
+            "title": "Total Blocks"
+          },
+          "total_disruption_minutes": {
+            "type": "integer",
+            "title": "Total Disruption Minutes"
+          },
+          "delayed_tasks": {
+            "type": "integer",
+            "title": "Delayed Tasks"
+          },
+          "high_priority_delays": {
+            "type": "integer",
+            "title": "High Priority Delays"
+          },
+          "composite_penalty_score": {
+            "type": "number",
+            "title": "Composite Penalty Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "created_at",
+          "status",
+          "total_blocks",
+          "total_disruption_minutes",
+          "delayed_tasks",
+          "high_priority_delays",
+          "composite_penalty_score"
+        ],
+        "title": "ScenarioSummaryResponse",
+        "description": "Summary item for scenario listing."
+      },
+      "ScenarioWeightOverrides": {
+        "properties": {
+          "weight_num_blocks": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Num Blocks"
+          },
+          "weight_disruption_minutes": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Disruption Minutes"
+          },
+          "weight_priority_lateness": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Priority Lateness"
+          }
+        },
+        "type": "object",
+        "title": "ScenarioWeightOverrides",
+        "description": "Overrides for CP-SAT objective function weights."
+      },
       "SectionBase": {
         "properties": {
           "id": {
@@ -2303,6 +3687,54 @@
           "order_index"
         ],
         "title": "SectionResponse"
+      },
+      "SectionRestrictionInput": {
+        "properties": {
+          "section_id": {
+            "type": "string",
+            "title": "Section Id",
+            "description": "Target section ID, e.g., 'SEC-01'"
+          },
+          "start_min": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Start Min",
+            "description": "Start minute of restriction"
+          },
+          "end_min": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "End Min",
+            "description": "End minute of restriction"
+          },
+          "restriction_type": {
+            "type": "string",
+            "title": "Restriction Type",
+            "description": "CLOSED (no maintenance windows allowed) | SPEED_RESTRICTED",
+            "default": "CLOSED"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Operational justification",
+            "default": "Emergency track maintenance / Weather alert"
+          }
+        },
+        "type": "object",
+        "required": [
+          "section_id",
+          "start_min",
+          "end_min"
+        ],
+        "title": "SectionRestrictionInput",
+        "description": "Parameter schema for closing or restricting track section during a time window."
       },
       "SeedRequest": {
         "properties": {
@@ -2824,6 +4256,61 @@
         },
         "type": "object",
         "title": "TaskUpdate"
+      },
+      "TrainSlotInput": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "Train slot ID. Auto-generated if omitted."
+          },
+          "section_id": {
+            "type": "string",
+            "title": "Section Id",
+            "description": "Track section traversed by train"
+          },
+          "train_no": {
+            "type": "string",
+            "title": "Train No",
+            "description": "Train number, e.g., 'SPL-09901'"
+          },
+          "start_min": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Start Min",
+            "description": "Arrival / entry minute into section"
+          },
+          "end_min": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "End Min",
+            "description": "Departure / exit minute from section"
+          },
+          "priority": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Priority",
+            "description": "Train priority (1 highest)",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "section_id",
+          "train_no",
+          "start_min",
+          "end_min"
+        ],
+        "title": "TrainSlotInput",
+        "description": "Parameter schema for injecting a special or unscheduled train slot."
       },
       "TrainSlotResponse": {
         "properties": {

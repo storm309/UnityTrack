@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, List
+from typing import Any, List, Optional
 
 from sqlalchemy import (
     JSON,
@@ -185,9 +185,13 @@ class Scenario(Base):
     __tablename__ = "scenarios"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    plan_id: Mapped[str] = mapped_column(
+    plan_id: Mapped[Optional[str]] = mapped_column(
         String(64), ForeignKey("plans.id", ondelete="SET NULL"), nullable=True
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
     params: Mapped[Any] = mapped_column(JSON, nullable=False)
     metrics: Mapped[Any] = mapped_column(JSON, nullable=False)

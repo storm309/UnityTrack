@@ -22,6 +22,20 @@ from app.optimizer.bundling import (
     compute_bundle_metrics,
     find_candidate_bundles,
 )
+from app.optimizer.explanations import (
+    BundleExplanationItem,
+    DelayExplanationItem,
+    FactorDetail,
+    PlanExplanationResult,
+    PlanRecommendationItem,
+    PriorityExplanationItem,
+    explain_bundle,
+    explain_plan_recommendation,
+    explain_task_delay,
+    explain_task_priority,
+    generate_plan_explanations,
+    verify_numbers_match_facts,
+)
 from app.optimizer.priority import (
     BAND_CRITICAL,
     BAND_HIGH,
@@ -34,6 +48,17 @@ from app.optimizer.priority import (
     compute_overdue_ratio,
     determine_priority_band,
     rank_tasks_by_priority,
+)
+from app.optimizer.scenario import (
+    DelayedTaskItem,
+    ScenarioComparisonOutcome,
+    ScenarioOverlayData,
+    ScenarioRankedComparison,
+    ScenarioSimulationResult,
+    apply_scenario_overlay,
+    compare_scenario_simulations,
+    compute_composite_penalty_score,
+    run_scenario_simulation,
 )
 from app.optimizer.scheduler import (
     OptimizerPlanResult,
@@ -88,4 +113,27 @@ __all__ = [
     # Baseline scheduler
     "BaselinePlanResult",
     "schedule_siloed_baseline",
+    # Scenario engine
+    "ScenarioOverlayData",
+    "DelayedTaskItem",
+    "ScenarioSimulationResult",
+    "ScenarioRankedComparison",
+    "ScenarioComparisonOutcome",
+    "apply_scenario_overlay",
+    "compute_composite_penalty_score",
+    "run_scenario_simulation",
+    "compare_scenario_simulations",
+    # Explanation engine
+    "FactorDetail",
+    "PriorityExplanationItem",
+    "BundleExplanationItem",
+    "DelayExplanationItem",
+    "PlanRecommendationItem",
+    "PlanExplanationResult",
+    "explain_task_priority",
+    "explain_bundle",
+    "explain_task_delay",
+    "explain_plan_recommendation",
+    "generate_plan_explanations",
+    "verify_numbers_match_facts",
 ]

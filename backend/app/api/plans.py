@@ -6,6 +6,7 @@ from typing import Dict, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.config import Settings, get_settings
 from app.database import get_db
 from app.models.domain import (
     BlockWindow,
@@ -16,11 +17,24 @@ from app.models.domain import (
     Task,
     TrainSlot,
 )
-from app.optimizer.baseline import schedule_siloed_baseline
+from app.optimizer.baseline import BaselinePlanResult, schedule_siloed_baseline
 from app.optimizer.bundling import SectionInfo, TaskItem
+from app.optimizer.explanations import generate_plan_explanations
 from app.optimizer.priority import calculate_task_priority
 from app.optimizer.scheduler import SchedulerConfig, solve_maintenance_schedule
-from app.optimizer.validator import validate_schedule
+from app.optimizer.validator import (
+    ScheduledBlock,
+    ScheduledTaskAssignment,
+    validate_schedule,
+)
+from app.schemas.explanation import (
+    BundleExplanation,
+    DelayExplanation,
+    FactorExplanation,
+    PlanExplanationsResponse,
+    PlanRecommendationExplanation,
+    PriorityExplanation,
+)
 from app.schemas.plan import (
     ComparisonMetricsResponse,
     PlanGenerateRequest,
@@ -64,6 +78,9 @@ def _extract_task_item(t: Task, corridor_id: str) -> TaskItem:
         criticality=t.criticality,
         defect_severity=t.defect_severity,
         priority_score=priority_res.score,
+        traffic_impact=t.traffic_impact,
+        due_date=t.due_date,
+        last_done_date=t.last_done_date,
     )
 
 
@@ -459,3 +476,217 @@ def list_plans(
         )
 
     return PlanListResponse(total_plans=len(summaries), plans=summaries)
+
+
+@router.get(
+    "/{plan_id}/explanations",
+    response_model=PlanExplanationsResponse,
+    summary="Generate explainable decision-support justifications for a maintenance plan",
+)
+def get_plan_explanations(
+    plan_id: str,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> PlanExplanationsResponse:
+    """Generate plain-language explanations with mathematical guarantees.
+
+    Every number traces directly back to solver and baseline output (zero LLM hallucinations).
+    """
+    plan = db.query(Plan).filter(Plan.id == plan_id).first()
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Plan with ID '{plan_id}' not found",
+        )
+
+    # Load sections and capacities
+    sections = db.query(Section).all()
+    section_map = {
+        s.id: SectionInfo(id=s.id, corridor_id=s.corridor_id, name=s.name, order_index=s.order_index)
+        for s in sections
+    }
+    resources = db.query(Resource).all()
+    crew_capacities = {r.department: r.capacity_per_window for r in resources}
+    if not crew_capacities:
+        crew_capacities = {"ENGINEERING": 4, "TRACTION": 2, "SNT": 3}
+
+    # Load tasks
+    db_tasks = db.query(Task).all()
+    task_map: Dict[str, TaskItem] = {}
+    for t in db_tasks:
+        sec = section_map.get(t.section_id)
+        c_id = sec.corridor_id if sec else "CORR-01"
+        item = _extract_task_item(t, corridor_id=c_id)
+        task_map[item.id] = item
+
+    # Load windows
+    windows_data = [
+        {
+            "id": w.id,
+            "section_id": w.section_id,
+            "start_min": w.start_min,
+            "end_min": w.end_min,
+            "duration_min": w.duration_min,
+            "is_night_window": w.is_night_window,
+        }
+        for w in db.query(BlockWindow).all()
+    ]
+
+    # Reconstruct ScheduledBlock and ScheduledTaskAssignment
+    scheduled_blocks: List[ScheduledBlock] = []
+    task_assignments: List[ScheduledTaskAssignment] = []
+
+    for pb in plan.planned_blocks:
+        dur = pb.end_min - pb.start_min
+        s_block = ScheduledBlock(
+            block_id=pb.id,
+            section_id=pb.section_id,
+            start_min=pb.start_min,
+            end_min=pb.end_min,
+            duration_min=dur,
+            task_ids=pb.task_ids,
+            departments=pb.departments,
+            requires_power_off="TRACTION" in pb.departments,
+            requires_track_block=True,
+        )
+        scheduled_blocks.append(s_block)
+
+        # Derive task timings
+        b_tasks = [task_map[t_id] for t_id in pb.task_ids if t_id in task_map]
+        curr_eng_offset = pb.start_min
+        for task_item in b_tasks:
+            if task_item.department == "ENGINEERING":
+                t_start = curr_eng_offset
+                curr_eng_offset += task_item.duration_min
+            else:
+                t_start = pb.start_min
+
+            t_finish = t_start + task_item.duration_min
+            is_del = t_finish > task_item.deadline
+            del_min = max(0, t_finish - task_item.deadline)
+
+            task_assignments.append(
+                ScheduledTaskAssignment(
+                    task_id=task_item.id,
+                    block_id=pb.id,
+                    section_id=pb.section_id,
+                    start_min=t_start,
+                    duration_min=task_item.duration_min,
+                    finish_min=t_finish,
+                    department=task_item.department,
+                    is_delayed=is_del,
+                    delay_minutes=del_min,
+                )
+            )
+
+    # Compute baseline
+    all_plan_tasks = [task_map[t_id] for pb in plan.planned_blocks for t_id in pb.task_ids if t_id in task_map]
+    if all_plan_tasks:
+        baseline_res = schedule_siloed_baseline(all_plan_tasks, windows_data, crew_capacities)
+    else:
+        baseline_res = BaselinePlanResult(
+            blocks=[], task_assignments=[], total_blocks=0, total_disruption_minutes=0,
+            scheduled_tasks_count=0, delayed_tasks_count=0, total_delay_minutes=0
+        )
+
+    # Generate explanations
+    exp_res = generate_plan_explanations(
+        plan_id=plan.id,
+        plan_name=plan.name,
+        created_at=plan.created_at.isoformat() if plan.created_at else "",
+        scheduled_blocks=scheduled_blocks,
+        task_assignments=task_assignments,
+        tasks_map=task_map,
+        sections_map=section_map,
+        baseline=baseline_res,
+        crew_capacities=crew_capacities,
+        enable_llm_polishing=settings.ENABLE_LLM_POLISHING,
+    )
+
+    # Map to Pydantic response models
+    return PlanExplanationsResponse(
+        plan_id=exp_res.plan_id,
+        plan_name=exp_res.plan_name,
+        created_at=exp_res.created_at,
+        is_llm_polished=exp_res.is_llm_polished,
+        recommendation=PlanRecommendationExplanation(
+            headline=exp_res.recommendation.headline,
+            summary=exp_res.recommendation.summary,
+            baseline_blocks=exp_res.recommendation.baseline_blocks,
+            optimized_blocks=exp_res.recommendation.optimized_blocks,
+            blocks_saved=exp_res.recommendation.blocks_saved,
+            block_reduction_pct=exp_res.recommendation.block_reduction_pct,
+            baseline_disruption_min=exp_res.recommendation.baseline_disruption_min,
+            optimized_disruption_min=exp_res.recommendation.optimized_disruption_min,
+            disruption_savings_min=exp_res.recommendation.disruption_savings_min,
+            disruption_savings_pct=exp_res.recommendation.disruption_savings_pct,
+            cross_departmental_blocks=exp_res.recommendation.cross_departmental_blocks,
+            delayed_tasks_count=exp_res.recommendation.delayed_tasks_count,
+            key_tradeoffs=exp_res.recommendation.key_tradeoffs,
+            detailed_bullets=exp_res.recommendation.detailed_bullets,
+        ),
+        bundle_explanations=[
+            BundleExplanation(
+                block_id=b.block_id,
+                section_id=b.section_id,
+                section_name=b.section_name,
+                start_min=b.start_min,
+                end_min=b.end_min,
+                duration_min=b.duration_min,
+                time_window_str=b.time_window_str,
+                departments=b.departments,
+                is_cross_departmental=b.is_cross_departmental,
+                task_ids=b.task_ids,
+                task_count=b.task_count,
+                sum_individual_durations=b.sum_individual_durations,
+                disruption_savings_min=b.disruption_savings_min,
+                power_off_required=b.power_off_required,
+                track_block_required=b.track_block_required,
+                justification=b.justification,
+                safety_compatibility_notes=b.safety_compatibility_notes,
+            )
+            for b in exp_res.bundle_explanations
+        ],
+        priority_explanations=[
+            PriorityExplanation(
+                task_id=p.task_id,
+                title=p.title,
+                department=p.department,
+                priority_score=p.priority_score,
+                priority_band=p.priority_band,
+                criticality=p.criticality,
+                defect_severity=p.defect_severity,
+                due_date=p.due_date,
+                traffic_impact=p.traffic_impact,
+                top_contributing_factors=[
+                    FactorExplanation(
+                        factor_name=f.factor_name,
+                        display_name=f.display_name,
+                        weight_pct=f.weight_pct,
+                        raw_value=f.raw_value,
+                        normalized_value=f.normalized_value,
+                        points_contributed=f.points_contributed,
+                        explanation=f.explanation,
+                    )
+                    for f in p.top_contributing_factors
+                ],
+                summary=p.summary,
+            )
+            for p in exp_res.priority_explanations
+        ],
+        delay_explanations=[
+            DelayExplanation(
+                task_id=d.task_id,
+                title=d.title,
+                department=d.department,
+                section_id=d.section_id,
+                deadline=d.deadline,
+                scheduled_finish=d.scheduled_finish,
+                delay_minutes=d.delay_minutes,
+                binding_constraint=d.binding_constraint,
+                root_cause_analysis=d.root_cause_analysis,
+            )
+            for d in exp_res.delay_explanations
+        ],
+        numerical_facts=exp_res.numerical_facts,
+    )

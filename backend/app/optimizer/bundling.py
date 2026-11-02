@@ -47,6 +47,9 @@ class TaskItem:
     criticality: int = 3
     defect_severity: int = 3
     priority_score: float = 0.0
+    traffic_impact: float = 0.5
+    due_date: str = "2026-11-05"
+    last_done_date: str = "2026-10-01"
 
 
 @dataclass(frozen=True)
